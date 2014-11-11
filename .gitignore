@@ -5,6 +5,8 @@
 .cache/
 .history/
 .lib/
+.idea/
+.idea_modules/
 dist/*
 target/
 lib_managed/
