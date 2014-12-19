@@ -20,3 +20,6 @@ project/plugins/project/
 
 # Node Specific
 node_modules/
+.Rproj.user
+.RData
+.Rhistory

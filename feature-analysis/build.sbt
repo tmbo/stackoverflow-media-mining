@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   // native libraries are not included by default. add this if you want them (as of 0.7)
   // native libraries greatly improve performance, but increase jar sizes.
   "org.scalanlp" %% "breeze-natives" % "0.8.1",
+  "org.scalaj" %% "scalaj-http" % "1.1.0",
   "org.scalacheck" %% "scalacheck" % "1.10.0" % "test" withSources() withJavadoc()
 )
 
