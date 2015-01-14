@@ -77,13 +77,14 @@ object Runner {
       p.println("Id,CreationTime,CreationDate")
       bounties.getLines().drop(1).zipWithIndex.foreach {
         case (node, idx) =>
-          Thread.sleep(200)
           val values = node.split(";")
           val id = readValue(values, 0)
           val qId = readValue(values, 1)
           val uId = readValue(values, 3)
           val timeTxt = readValue(values, 4)
-          if(id != "NULL" && qId != "NULL" && uId != "NULL" && timeTxt != "NULL") {
+          val bounty = readValue(values, 5)
+          if(bounty != "NULL" && id != "NULL" && qId != "NULL" && uId != "NULL" && timeTxt != "NULL") {
+            Thread.sleep(200)
             val time = dateFormatter.parse(timeTxt).getTime / 1000
             TimeStampForVoteRequester.requestFor(id, uId, qId, time) match {
               case Left(Some(date)) =>
