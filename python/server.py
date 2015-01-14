@@ -24,8 +24,8 @@ class SimpleREST(object):
 
     return features
 
-  def POST(self, length=8):
-    return "blob"
+  def POST(self):
+    raise NotFound()
 
   def PUT(self):
     raise NotFound()
