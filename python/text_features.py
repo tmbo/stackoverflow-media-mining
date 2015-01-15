@@ -4,7 +4,7 @@ import re
 
 TAG_RE = re.compile(r'<[^>]+>')
 CODE_RE = re.compile(r'<code>(.*?)</code>')
-IMG_RE = re.compile(r'<img (.*?)/>')
+IMG_RE = re.compile(r'<img (.*?)/?>')
 SELF_RE = re.compile(r'I(?=\')|I(?=\s)|we(?=\s)|me(?=\s)|myself(?=\s)|our(?=\s)', re.IGNORECASE)
 VERBS_RE = re.compile(r'run(?=\s)|tried(?=\s)|did(?=\s)|made(?=\s)|used(?=\s)|tested(?=\s)')
 
@@ -35,7 +35,7 @@ def lengthOfCodeSnippets(text):
 
 
 def textLength(text):
-  return len(text)
+  return len(text.strip())
 
 
 def endsWithQuestionMark(text):
@@ -70,6 +70,41 @@ def log(stats):
   print "-----------------------------------------"
 
 
+def calcTextFeatures(postId, body, title):
+
+  stats = {
+    "postId" : postId,
+    "num_code_snippet" : 0,
+    "num_images" : 0,
+    "code_len" : 0,
+    "body_len" : 0,
+    "title_len" : 0,
+    "end_que_mark" : False,
+    "begin_que_word" : False,
+    "num_selfref" : 0,
+    "num_active_verb" : 0
+  }
+
+  #calculate all code-based features with HTML tags still intact
+  stats["num_code_snippet"] = numberOfCodeSnippets(body)
+  stats["code_len"] = lengthOfCodeSnippets(body)
+  stats["num_images"] = numberOfImages(body)
+
+  # remove all outer HTML tags
+  body = removeTags(body)
+
+  # body features
+  stats["body_len"] = textLength(body)
+  stats["num_selfref"] = numberOfSelfRef(body)
+  stats["num_active_verb"] = numberOfActionVerbs(body)
+
+  # title features
+  stats["title_len"] = textLength(title)
+  stats["end_que_mark"] = endsWithQuestionMark(title)
+  stats["begin_que_word"] = startsWithQuestionWord(title)
+
+  return stats
+
 def updateDB(stats):
   rows_affected = cursor.execute("""
 UPDATE bounty_text
@@ -89,70 +124,47 @@ WHERE PostId=%s
 
 
 # ========= Main Entry Point ============
-try:
+#
+# Only run this Script manually when trying to batch calculate features from DB
+#
+if __name__ == "__main__":
 
-  cnx = mysql.connector.connect(user="root",
-                                database="stackoverflow",
-                                host="localhost")
+  try:
 
-  print "Starting number crunching\n"
+    cnx = mysql.connector.connect(user="root",
+                                  database="stackoverflow",
+                                  host="localhost")
 
-  cursor = cnx.cursor()
-  cursor.execute("Select * FROM bounty_text")
+    print "Starting number crunching\n"
+
+    cursor = cnx.cursor()
+    cursor.execute("Select * FROM bounty_text")
 
 
-  # HACKY
-  rows = cursor.fetchall()
-  for row in rows:
+    # HACKY
+    rows = cursor.fetchall()
 
-    # Python uses ASCII by default?
-    body = row[2].encode("utf-8")
-    postId = row[1]
-    title = row[4]
+    for row in rows:
 
-    stats = {
-      "postId" : postId,
-      "num_code_snippet" : 0,
-      "num_images" : 0,
-      "code_len" : 0,
-      "body_len" : 0,
-      "title_len" : 0,
-      "end_que_mark" : False,
-      "begin_que_word" : False,
-      "num_selfref" : 0,
-      "num_active_verb" : 0
-    }
+      # Python uses ASCII by default?
+      body = row[2].encode("utf-8")
+      postId = row[1]
+      title = row[4]
 
-    #calculate all code-based features with HTML tags still intact
-    stats["num_code_snippet"] = numberOfCodeSnippets(body)
-    stats["code_len"] = lengthOfCodeSnippets(body)
-    stats["num_images"] = numberOfImages(body)
+      stats = calcTextFeatures(postId, body, title)
 
-    # remove all outer HTML tags
-    body = removeTags(body)
+      updateDB(stats)
+      log(stats)
 
-    # body features
-    stats["body_len"] = textLength(body)
-    stats["num_selfref"] = numberOfSelfRef(body)
-    stats["num_active_verb"] = numberOfActionVerbs(body)
+    print "Done"
 
-    # title features
-    stats["title_len"] = textLength(title)
-    stats["end_que_mark"] = endsWithQuestionMark(title)
-    stats["begin_que_word"] = startsWithQuestionWord(title)
-
-    updateDB(stats)
-    #log(stats)
-
-  print "Done"
-
-except mysql.connector.Error as err:
-  if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    print("Something is wrong with your user name or password")
-  elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    print("Database does not exists")
+  except mysql.connector.Error as err:
+    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+      print("Something is wrong with your user name or password")
+    elif err.errno == errorcode.ER_BAD_DB_ERROR:
+      print("Database does not exists")
+    else:
+      print(err)
   else:
-    print(err)
-else:
-  cnx.close()
+    cnx.close()
 
