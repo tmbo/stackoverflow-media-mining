@@ -4,7 +4,7 @@ import re
 
 TAG_RE = re.compile(r'<[^>]+>')
 CODE_RE = re.compile(r'<code>(.*?)</code>')
-IMG_RE = re.compile(r'<img (.*?)/>')
+IMG_RE = re.compile(r'<img (.*?)/?>')
 SELF_RE = re.compile(r'I(?=\')|I(?=\s)|we(?=\s)|me(?=\s)|myself(?=\s)|our(?=\s)', re.IGNORECASE)
 VERBS_RE = re.compile(r'run(?=\s)|tried(?=\s)|did(?=\s)|made(?=\s)|used(?=\s)|tested(?=\s)')
 

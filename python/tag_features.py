@@ -59,11 +59,11 @@ def calcTagFeatures(postId, tags):
 
 
 def queryTogetherness(tagCombo):
+
   try:
     cnx = mysql.connector.connect(user=user, database=database, host=host)
     cursor = cnx.cursor(dictionary=True)
     cursor.execute("SELECT togetherness FROM tag_combos WHERE tag1=%s AND tag2=%s", tagCombo)
-    print cursor.statement
     return cursor.fetchone()
 
   except mysql.connector.Error as err:
