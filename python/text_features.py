@@ -43,8 +43,8 @@ def endsWithQuestionMark(text):
 
 
 def startsWithQuestionWord(text):
-  # String starts with question words like "What", "Why", "Who" ...
-  return text[:2].lower() == "wh"
+  # String starts with question words like "What", "Why", "Who", "How" ...
+  return text[:2].lower() == "wh" or text[:3].lower() == "how"
 
 
 def numberOfSelfRef(text):

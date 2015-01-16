@@ -1,50 +1,35 @@
-import cherrypy
-from cherrypy import NotFound
+from flask import Flask
+from flask import render_template
+from flask.json import jsonify
 import requests
 import text_features as TextFeatures
 import tag_features as TagFeatures
 
-class SimpleREST(object):
-  exposed = True
+app=Flask(__name__)
 
-  @cherrypy.tools.accept(media="text/plain")
-  @cherrypy.tools.json_out()
-  def GET(self, questionId):
 
-    questionRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s?site=stackoverflow&filter=withbody" % questionId)
-    answersRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s/answers?site=stackoverflow" % questionId)
+@app.route("/")
+def index():
+  return "LOL"
 
-    question = questionRequest.json()["items"][0]
-    answers = answersRequest.json()["items"]
 
-    features = dict(
-      TextFeatures.calcTextFeatures(question["question_id"], question["body"], question["title"]),
-      **TagFeatures.calcTagFeatures(question["question_id"], question["tags"])
-    )
+@app.route("/api/<int:questionId>")
+def getMetadata(questionId):
 
-    return features
+  questionRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s?site=stackoverflow&filter=withbody" % questionId)
+  answersRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s/answers?site=stackoverflow" % questionId)
 
-  def POST(self):
-    raise NotFound()
+  question = questionRequest.json()["items"][0]
+  answers = answersRequest.json()["items"]
 
-  def PUT(self):
-    raise NotFound()
+  features = jsonify(
+    TextFeatures.calcTextFeatures(question["question_id"], question["body"], question["title"]),
+    **TagFeatures.calcTagFeatures(question["question_id"], question["tags"])
+  )
 
-  def DELETE(self):
-    raise NotFound()
+  return features
 
 
 if __name__ == "__main__":
-  conf = {
-    "global" : {
-      "server.socket_port": 9000
-    },
-    "/": {
-      "request.dispatch": cherrypy.dispatch.MethodDispatcher(),
-      "tools.sessions.on": True,
-      "tools.response_headers.on": True,
-      "tools.response_headers.headers": [("Content-Type", "text/json")],
-    }
-  }
 
-  cherrypy.quickstart(SimpleREST(), "/", conf)
+  app.run(port=9000, debug=True)
