@@ -18,8 +18,6 @@ chunker = TextChunker(stemChunks=False)
 
 syl_counter = cmusyllables()
 
-syl_counter.Load()
-
 class SOQuestionCorpus(object):
     def __init__(self, questions, isAlreadyTokenized):
         self.questions = questions
