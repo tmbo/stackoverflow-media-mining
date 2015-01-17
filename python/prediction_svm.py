@@ -6,7 +6,7 @@ import numpy as np
 from operator import itemgetter
 from sklearn.externals import joblib
 import time
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.grid_search import GridSearchCV
 
 name_of_feature_table = "training_features"
@@ -38,10 +38,8 @@ def convert_date_to_timestamp(str):
     return time.mktime(str.timetuple())
 
 
-def calculate_y(start_date_str, end_date_str):
-    start_date = convert_date_to_timestamp(start_date_str)
-    end_date = convert_date_to_timestamp(end_date_str)
-    return 1 if int(end_date - start_date) / 60 / 60 < (24 * 2.5) else 0
+def calculate_y(durationInMinutes):
+    return 1 if durationInMinutes / 60 < (24 * 2.5) else 0
 
 
 def load_data_from_db():
@@ -63,7 +61,7 @@ def train_to_predict_finish(data):
     clf = svm.SVC()  # probability = True)
 
     X_train_unscaled, X_test_unscaled, y_train, y_test = cross_validation.train_test_split(unscaled_X, y,
-                                                                                           test_size=2000,
+                                                                                           test_size=1000,
                                                                                            train_size=20000,
                                                                                            random_state=0)
 
@@ -77,8 +75,14 @@ def train_to_predict_finish(data):
 
     # store_svm(clf, "output/test.pkl")
 
-    print "Scoring Finish-SVM on test data ..."
-    print "Finish-Trainings Accuracy: %f F1-score: %f" % (clf.score(X_test, y_test), f1_score(y_test, clf.predict(X_test)))
+    prediction = clf.predict(X_test)
+    print "Scoring Finish-SVM on TEST data ..."
+    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
+
+    prediction_train = clf.predict(X_train)
+    print "Scoring Finish-SVM on TRAINING data ..."
+    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_train, y_train), f1_score(y_train, prediction_train), roc_auc_score(y_train, prediction_train))
+
     return clf
 
 
@@ -130,7 +134,7 @@ def train_to_predict_time(data):
     clf = svm.SVC()  # probability = True)
 
     X_train_unscaled, X_test_unscaled, y_train, y_test = cross_validation.train_test_split(unscaled_X, y,
-                                                                                           test_size=2000,
+                                                                                           test_size=1000,
                                                                                            train_size=20000,
                                                                                            random_state=0)
 
@@ -142,10 +146,16 @@ def train_to_predict_time(data):
     print "Training SVM on trainings data to estimate answer time..."
     clf.fit(X_train, y_train)
 
+    prediction = clf.predict(X_test)
+
     # store_svm(clf, "output/test.pkl")
 
     print "Scoring Time-SVM on test data ..."
-    print "Time-Trainings Accuracy: %f F1-score: %f" % (clf.score(X_test, y_test), f1_score(y_test, clf.predict(X_test)))
+    print "Time-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
+
+    prediction_train = clf.predict(X_train)
+    print "Scoring Finish-SVM on TRAINING data ..."
+    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_train, y_train), f1_score(y_train, prediction_train), roc_auc_score(y_train, prediction_train))
     return clf
 
 def extract_features(data):
@@ -154,7 +164,7 @@ def extract_features(data):
     # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate, feature1, feature2, feature3, ...
     for row in data:
         X.append([x for idx, x in enumerate(row) if
-                  idx > 14])  # remove the first three elements from the column (id and dates)
+                  idx > 6])  # remove the first four elements from the column (id and dates)
     return X
 
 
@@ -172,7 +182,7 @@ def labels_for_time_prediction(data):
 
     # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate, feature1, feature2, feature3, ...
     for row in data:
-        y.append(calculate_y(row[2], row[3]))
+        y.append(calculate_y(row[5]))
     return y
 
 
@@ -181,6 +191,8 @@ if __name__ == "__main__":
 
     data = load_data_from_db()
 
-    train_to_predict_time(data)
+    # train_to_predict_time(data)
+    #
+    # train_to_predict_finish(data)
 
-    train_to_predict_finish(data)
+    grid_train_to_predict_time(data)
