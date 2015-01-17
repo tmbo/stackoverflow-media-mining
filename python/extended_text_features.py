@@ -107,11 +107,11 @@ def count_characters(text):
 
 
 def automated_readability_index(stats):
-    return 4.71 * (stats['chars'] / stats['words']) + 0.5 (stats['words'] / stats['sentences']) - 21.43
+    return 4.71 * (stats['chars'] / stats['words']) + 0.5 * (stats['words'] / stats['sentences']) - 21.43
 
 
 def coleman_liau_index(stats):
-    return 0.0588 * (stats['chars'] * 100 / stats['words']) - 0.296 (stats['sentences'] * 100 / stats['words']) - 15.8
+    return 0.0588 * (stats['chars'] * 100 / stats['words']) - 0.296 * (stats['sentences'] * 100 / stats['words']) - 15.8
 
 
 def flesch_kincaid_index(stats):
