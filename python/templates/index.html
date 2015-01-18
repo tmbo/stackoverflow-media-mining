@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="center-block">
+
+  <h2 class="text-center">Stackoverflow Bounty Predictions</h2>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-danger" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign pull-left" aria-hidden="true"></span>
+        <ul class="list-unstyled">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="/submitQuestion" class="form">
+    <div class="form-group">
+    <div class="col-sm-10">
+      <input type="text" placeholder="Stackoverflow Question URL or Question Id" name="question" class="form-control">
+    </div>
+    <input type="submit" class="btn btn-primary col-sm-2">
+  </form>
+</div>
+{% endblock %}
