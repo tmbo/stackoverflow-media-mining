@@ -17,12 +17,5 @@
     {% endif %}
   {% endwith %}
 
-  <form method="POST" action="/submitQuestion" class="form">
-    <div class="form-group">
-    <div class="col-sm-8 col-sm-offset-1">
-      <input type="text" placeholder="Stackoverflow Question URL or Question Id" name="question" class="form-control">
-    </div>
-    <input type="submit" class="btn btn-primary col-sm-2">
-  </form>
-</div>
+  {% include "search.html" %}
 {% endblock %}
