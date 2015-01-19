@@ -1,11 +1,15 @@
 {% extends "base.html" %}
+
+{% include "index.html" %}
+
 {% block content %}
-<h2>Results for Question {{ questionId }}</h2>
-<div class="well">
-  <h3>Predicition</h3>
-  <p>The Bounty generates at least one answer: {{ prediction.success|e }}</p>
-  <p>An answer is posted within 2.5 days: {{ prediction.withinTimeInterval|e }}</p>
-</div>
+<div>
+  <h2>Results for Question {{ questionId }}</h2>
+  <div class="well">
+    <h3>Predicition</h3>
+    <p>The Bounty generates at least one answer: {{ prediction.success|e }}</p>
+    <p>An answer is posted within 2.5 days: {{ prediction.withinTimeInterval|e }}</p>
+  </div>
 
 {% for category, features in stats.iteritems() %}
   <div class="well">
@@ -18,5 +22,6 @@
   </div>
 {% endfor %}
 
+<div>
 {% endblock %}
 
