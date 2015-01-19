@@ -1,13 +1,13 @@
 import mysql.connector
 from mysql.connector import errorcode
-import re
 from gensim import utils, models, corpora
-from text_features import removeTags, removeCode
+from text_features import removeTags, removeCode, number_of_code_snippets, lengthOfCodeSnippets, numberOfImages, textLength
 from tagging import TextChunker
 import multiprocessing
 import os
 from operator import itemgetter
 import logging
+from math import sqrt
 import nltk
 from curses.ascii import isdigit
 from syllablecounter import cmusyllables
@@ -23,12 +23,17 @@ class SOQuestionCorpus(object):
         self.questions = questions
         self.isAlreadyTokenized = isAlreadyTokenized
         print "Creating dictionary..."
-        self.dictionary = corpora.Dictionary(self.tokenized_texts())
-        self.dictionary.filter_extremes(no_above=0.9)  # remove stopwords etc
+        tokenized = self.tokenized_texts()
+        self.dictionary = corpora.Dictionary(tokenized)
+        self.dictionary.filter_extremes(no_above=0.5)  # remove stopwords etc
+        self.underlying = [self.dictionary.doc2bow(tokens) for tokens in tokenized]
+
+    def __len__(self):
+        return len(self.questions)
 
     def __iter__(self):
-        for tokens in self.tokenized_texts():
-            yield self.dictionary.doc2bow(tokens)
+        for bow in self.underlying:
+            yield bow
 
     def tokenized_texts(self):
         return self.questions if self.isAlreadyTokenized else self.iter_texts(self.questions)
@@ -47,19 +52,20 @@ class TopicModel:
     @staticmethod
     def create(name, questions, isAlreadyTokenized, preprocessor):
         corpus = SOQuestionCorpus(questions, isAlreadyTokenized)
-        mallet_path = 'mallet/bin/mallet'
-        model = models.LdaMallet(mallet_path, corpus, num_topics=100, iterations=1000, workers=6, id2word=corpus.dictionary)
+        model = models.LdaModel(corpus, passes=20, num_topics=100, id2word=corpus.dictionary)
         return TopicModel(name, model, corpus.dictionary, preprocessor)
 
     @staticmethod
     def load_from_file(name, preprocessor):
-        return TopicModel(name, models.LdaMallet.load("output/%s_model.lda" % name), corpora.Dictionary.load("output/%s_dictionary.lda" % name), preprocessor)
+        return TopicModel(name, models.LdaModel.load("output/%s_model.lda" % name), corpora.Dictionary.load("output/%s_dictionary.lda" % name), preprocessor)
 
-    def topics(self, text):
-        return self.model[self.text_to_bow(text)]
+    def topics(self, text, is_already_processed):
+        return self.model[self.text_to_bow(text, is_already_processed)]
 
-    def text_to_bow(self, text):
-        return self.dictionary.doc2bow(self.preprocessor(text))
+    def text_to_bow(self, text, is_already_processed):
+        if not is_already_processed:
+            text = self.preprocessor(text)
+        return self.dictionary.doc2bow(text)
 
     def save(self):
         self.model.save("output/%s_model.lda" % self.name)
@@ -70,17 +76,6 @@ def preprocessQuestion(question):
     return list(chunker.chunkText(question.lower()))
 
 
-def create_topic_models(questions):
-    whole = TopicModel("whole_question", questions, isAlreadyTokenized=False)
-
-    print "Chunking text..."
-    chunked = pool.map(preprocessQuestion, questions)
-    pool.terminate()
-    print "Finished chunking text..."
-    vp = TopicModel("VP_question", chunked, isAlreadyTokenized=True)
-    return whole, vp
-
-
 def extract_best_topics(els, n):
     sorted_by_second = sorted(els, key=itemgetter(1), reverse=True)
     return map(itemgetter(0), sorted_by_second[0:n])
@@ -88,7 +83,9 @@ def extract_best_topics(els, n):
 
 def updateTopicFeatures(data, cursor, writer):
     try:
-        query = """UPDATE training_features SET topic1=%s,topic2=%s,topic3=%s,vp_topic1=%s,vp_topic2=%s,vp_topic3=%s, body_ari=%s, body_cli=%s, body_fki=%s WHERE QuestionId=%s"""
+        query = """UPDATE training_features, bounties b
+            SET body_avg_chars=%s, body_avg_words=%s, body_ari=%s, body_cli=%s, body_fre=%s, body_gfi=%s, topics=%s, vp_topics=%s
+            WHERE b.QuestionId=%s and b.Id = training_features.Id"""
         cursor.executemany(query, data)
         writer.commit()
     except Exception as err:
@@ -107,38 +104,61 @@ def count_characters(text):
 
 
 def automated_readability_index(stats):
-    return 4.71 * (stats['chars'] / stats['words']) + 0.5 * (stats['words'] / stats['sentences']) - 21.43
+    try:
+        return 4.71 * (stats['chars'] / stats['words']) + 0.5 * (stats['words'] / stats['sentences']) - 21.43
+    except ZeroDivisionError:
+        return 0
 
 
 def coleman_liau_index(stats):
-    return 0.0588 * (stats['chars'] * 100 / stats['words']) - 0.296 * (stats['sentences'] * 100 / stats['words']) - 15.8
+    try:
+        return 0.0588 * (stats['chars'] * 100 / stats['words']) - 0.296 * (stats['sentences'] * 100 / stats['words']) - 15.8
+    except ZeroDivisionError:
+        return 0
 
 
-def flesch_kincaid_index(stats):
-    return 0.39 * (stats['words'] / stats['sentences']) + 11.8 * (stats['syllables'] / stats['words']) - 15.59
+def flesch_reading_ease(stats):
+    try:
+        return 206.835 - 1.015 * (stats['words'] / stats['sentences']) - 84.6 * (stats['syllables'] / stats['words'])
+    except ZeroDivisionError:
+        return 0
 
 
-def count_syllables(sentences):
-    syl_count = 0
-    for sentence in sentences:
-        for word in sentence:
-            syl_count += syl_counter.SyllableCount(word)
-    return syl_count
+def gunning_fog_index(stats):
+    try:
+        return 0.4 * ((stats['words'] / stats['sentences'] + 100 * stats['polysyllables'] / stats['words']))
+
+    except ZeroDivisionError:
+        return 0
+
+
+def count_syllables(words):
+    return [syl_counter.SyllableCount(word) for word in words]
 
 
 def calculate_stats(text):
     sentences = nltk.sent_tokenize(text)
-    words = [nltk.word_tokenize(sent) for sent in sentences]
+    words = [token for sent in sentences for token in nltk.word_tokenize(sent) if len(token) >= 2 or token.lower() == "i"]
+    syllables = count_syllables(words)
+
+    avg_words = len(words) / len(sentences) if len(sentences) > 0 else 0
+    avg_chars = count_characters(text) / len(words) if len(words) > 0 else 0
 
     return {
-        'words': sum(map(lambda s: len(s), words)),
+        'words': len(words),
+        'avg_chars': avg_chars,
+        'avg_words': avg_words,
         'sentences': len(sentences),
         'chars': count_characters(text),
-        'syllables': count_syllables(words)
+        'syllables': sum(syllables),
+        'polysyllables': len(filter(lambda num_word_syllables: num_word_syllables >= 3, syllables))
     }
 
 
-# pool = multiprocessing.Pool()
+def ensure_size(a, n, default):
+    while len(a) < n:
+        a.append(default)
+    return a
 
 if __name__ == "__main__":
 
@@ -155,7 +175,7 @@ if __name__ == "__main__":
         print "Starting number crunching\n"
 
         cursor = cnx.cursor()
-        cursor.execute("Select PostId, Body FROM bounty_text LIMIT 100")
+        cursor.execute("Select PostId, Body FROM bounty_text")
 
         # HACKY
         print "Fetching questions..."
@@ -170,33 +190,41 @@ if __name__ == "__main__":
             whole_model.save()
 
         print "Chunking text..."
-        # if os.path.isfile("output/%s_model.lda" % vpName):
-        #     vp_model = TopicModel.load_from_file(vpName, preprocessQuestion)
-        # else:
-        #     chunked = pool.map(preprocessQuestion, questions)
-        #     pool.terminate()
-        #     print "Finished chunking text..."
-        #     vp_model = TopicModel.create(vpName, chunked, True, preprocessQuestion)
-        #     vp_model.save()
+        pool = multiprocessing.Pool()
+        chunked = pool.map(preprocessQuestion, questions)
+        pool.terminate()
+        print "Finished chunking text..."
+
+        if os.path.isfile("output/%s_model.lda" % vpName):
+            vp_model = TopicModel.load_from_file(vpName, preprocessQuestion)
+        else:
+            vp_model = TopicModel.create(vpName, chunked, True, preprocessQuestion)
+            vp_model.save()
 
         updateData = []
 
-        for row in rows:
+        for idx, row in enumerate(rows):
             body = removeTags(removeCode(row[1].encode("utf-8")))
-            pred =  whole_model.topics(body)
-            topics = extract_best_topics(pred, 3)
-            # vp_topics = extract_best_topics(vp_model.topics(body), 3)
-            data = topics
-            # data.extend(vp_topics)
+            pred = whole_model.topics(body, False)
+            topics = whole_model.topics(body, False)
+            vp_topics = vp_model.topics(chunked[idx], True)
+
+            data = []
             stats = calculate_stats(body)
+            data.append(stats['avg_chars'])
+            data.append(stats['avg_words'])
             data.append(automated_readability_index(stats))
             data.append(coleman_liau_index(stats))
-            data.append(flesch_kincaid_index(stats))
+            data.append(flesch_reading_ease(stats))
+            data.append(gunning_fog_index(stats))
+            data.append(str(topics))
+            data.append(str(vp_topics))
             data.append(row[0])
             updateData.append(data)
             if len(updateData) > FlushSize:
                 updateTopicFeatures(updateData, cursor, cnx)
                 updateData = []
+                print "Finished %d" % idx
 
         if len(updateData) > 0:
             updateTopicFeatures(updateData, cursor, cnx)

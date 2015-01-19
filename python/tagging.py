@@ -24,7 +24,7 @@ class TextChunker:
         for tagged in postagged:
             for chunk in self.extractChunks(self.chunker.parse(tagged), exclude=["NP", ".", ":", "(", ")"]):
                 if len(chunk) >= 2:
-                    yield chunk.replace(',', ".")
+                    yield chunk
 
 
     def extractChunks(self, tree, exclude):

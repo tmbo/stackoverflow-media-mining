@@ -15,6 +15,28 @@ user_name = "root"
 password = ""
 host = "127.0.0.1"
 
+train_size = 20000
+test_size = 1000
+
+active_features = [
+    'text',
+    # 'tags',
+    # 'comments',
+    'linguistic',
+    # 'bounty',
+    # 'topic'
+]
+
+featuresets = {
+    'text': [7, 8, 9, 10, 11, 12, 13, 14, 51, 52, 53, 54, 55],
+    'tags': [15, 16, 17, 18, 19, 20, 21, 22, 23, 36, 37, 56, 57, 58, 59, 60, 61],
+    'comments': [30, 31, 33, 69, 70],
+    'linguistic': [45, 46, 47, 48, 49, 50, 62, 63, 64, 65, 66],
+    'bounty': [24, 25, 26, 27, 28, 29, 32, 34, 35, 38, 67, 68, 71, 72],
+    'topic': [39, 40, 41, 42, 43, 44]
+}
+
+
 # Utility function to report best scores
 def report(grid_scores, n_top=3):
     top_scores = sorted(grid_scores, key=itemgetter(1), reverse=True)[:n_top]
@@ -25,6 +47,7 @@ def report(grid_scores, n_top=3):
             np.std(score.cv_validation_scores)))
         print("Parameters: {0}".format(score.parameters))
         print("")
+
 
 def store_svm(clf, file_name):
     joblib.dump(clf, file_name)
@@ -56,14 +79,15 @@ def load_data_from_db():
 def train_to_predict_finish(data):
     # Prediction of success event
     unscaled_X = extract_features(data)
+    print "Working with %d features. Enabeled: %s" % (len(unscaled_X), active_features)
     y = labels_for_finish_prediction(data)
 
-    clf = svm.SVC()  # probability = True)
+    clf = svm.SVC(verbose=True, kernel="rbf")  # probability = True)
 
     X_train_unscaled, X_test_unscaled, y_train, y_test = cross_validation.train_test_split(unscaled_X, y,
-                                                                                           test_size=1000,
-                                                                                           train_size=20000,
-                                                                                           random_state=0)
+                                                                                           test_size=test_size,
+                                                                                           train_size=train_size,
+                                                                                           random_state=42)
 
     scaler = preprocessing.StandardScaler().fit(X_train_unscaled)
 
@@ -77,12 +101,53 @@ def train_to_predict_finish(data):
 
     prediction = clf.predict(X_test)
     print "Scoring Finish-SVM on TEST data ..."
-    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
+    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (
+    clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
 
-    prediction_train = clf.predict(X_train)
-    print "Scoring Finish-SVM on TRAINING data ..."
-    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_train, y_train), f1_score(y_train, prediction_train), roc_auc_score(y_train, prediction_train))
+    # prediction_train = clf.predict(X_train)
+    # print "Scoring Finish-SVM on TRAINING data ..."
+    # print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (
+    # clf.score(X_train, y_train), f1_score(y_train, prediction_train), roc_auc_score(y_train, prediction_train))
 
+    return clf
+
+
+def train_to_predict_time(data):
+    # Prediction of time event
+    filtered_data = filter(lambda x: x[1] == 1, data)
+
+    y = labels_for_time_prediction(filtered_data)
+    unscaled_X = extract_features(filtered_data)
+
+    print "Working with %d features. Enabeled: %s" % (len(unscaled_X[0]), active_features)
+
+    clf = svm.SVC(verbose=True, kernel="rbf")  # probability = True)
+
+    X_train_unscaled, X_test_unscaled, y_train, y_test = cross_validation.train_test_split(unscaled_X, y,
+                                                                                           test_size=test_size,
+                                                                                           train_size=train_size,
+                                                                                           random_state=42)
+
+    scaler = preprocessing.StandardScaler().fit(X_train_unscaled)
+
+    X_train = scaler.transform(X_train_unscaled)
+    X_test = scaler.transform(X_test_unscaled)
+
+    print "Training SVM on trainings data to estimate answer time..."
+    clf.fit(X_train, y_train)
+
+    prediction = clf.predict(X_test)
+
+    # store_svm(clf, "output/test.pkl")
+
+    print "Scoring Time-SVM on test data ..."
+    print "Time-Trainings Accuracy: %f F1-score: %f ROC: %f" % (
+    clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
+
+    # prediction_train = clf.predict(X_train)
+    # print "Scoring Time-SVM on TRAINING data ..."
+    # print "Time-Trainings Accuracy: %f F1-score: %f ROC: %f" % (
+    # clf.score(X_train, y_train), f1_score(y_train, prediction_train), roc_auc_score(y_train, prediction_train))
     return clf
 
 
@@ -91,9 +156,9 @@ def grid_train_to_predict_time(data):
     filtered_data = filter(lambda x: x[1] == 1, data)
 
     param_grid = [
-        {'C': [1, 10, 100, 1000], 'kernel': ['linear']},
-        {'C': [1, 10, 100, 1000], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
-        ]
+        {'C': map(lambda x: pow(2, x), range(-5, 16, 2)), 'gamma': map(lambda x: pow(2, x), range(-15, 3, 2)),
+         'kernel': ['rbf']}
+    ]
 
     y = labels_for_time_prediction(filtered_data)
     unscaled_X = extract_features(filtered_data)
@@ -111,7 +176,7 @@ def grid_train_to_predict_time(data):
     X_test = scaler.transform(X_test_unscaled)
 
     print "Training SVM on trainings data to estimate answer time..."
-    grid_search = GridSearchCV(clf, param_grid=param_grid, refit=True, n_jobs=4)
+    grid_search = GridSearchCV(clf, param_grid=param_grid, refit=True, n_jobs=6, verbose=2)
     grid_search.fit(X_train, y_train)
 
     print("GridSearchCV for %d candidate parameter settings." % len(grid_search.grid_scores_))
@@ -123,48 +188,27 @@ def grid_train_to_predict_time(data):
     print "Time-Trainings score: %f" % grid_search.score(X_test, y_test)  # f1_score(y_test, clf.predict(X_test))
     return clf
 
+def array_from_sparse(els, size):
+    r = [0.0] * size
+    for idx, value in els:
+        r[idx] = value
+    return r
 
-def train_to_predict_time(data):
-    # Prediction of time event
-    filtered_data = filter(lambda x: x[1] == 1, data)
-
-    y = labels_for_time_prediction(filtered_data)
-    unscaled_X = extract_features(filtered_data)
-
-    clf = svm.SVC()  # probability = True)
-
-    X_train_unscaled, X_test_unscaled, y_train, y_test = cross_validation.train_test_split(unscaled_X, y,
-                                                                                           test_size=1000,
-                                                                                           train_size=20000,
-                                                                                           random_state=0)
-
-    scaler = preprocessing.StandardScaler().fit(X_train_unscaled)
-
-    X_train = scaler.transform(X_train_unscaled)
-    X_test = scaler.transform(X_test_unscaled)
-
-    print "Training SVM on trainings data to estimate answer time..."
-    clf.fit(X_train, y_train)
-
-    prediction = clf.predict(X_test)
-
-    # store_svm(clf, "output/test.pkl")
-
-    print "Scoring Time-SVM on test data ..."
-    print "Time-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
-
-    prediction_train = clf.predict(X_train)
-    print "Scoring Finish-SVM on TRAINING data ..."
-    print "Finish-Trainings Accuracy: %f F1-score: %f ROC: %f" % (clf.score(X_train, y_train), f1_score(y_train, prediction_train), roc_auc_score(y_train, prediction_train))
-    return clf
 
 def extract_features(data):
     X = []
 
+    actives = [c for active in active_features for c in featuresets[active]]
+
     # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate, feature1, feature2, feature3, ...
     for row in data:
-        X.append([x for idx, x in enumerate(row) if
-                  idx > 6])  # remove the first four elements from the column (id and dates)
+        features = [x for idx, x in enumerate(row) if idx in actives]  # remove the first four elements from the column (id and dates)
+        if 'topic' in active_features:
+            topic_features = array_from_sparse(eval(str(row[-2])), 100)
+            vp_topic_features = array_from_sparse(eval(str(row[-1])), 100)
+            features.extend(topic_features)
+            features.extend(vp_topic_features)
+        X.append(features)
     return X
 
 
@@ -191,8 +235,8 @@ if __name__ == "__main__":
 
     data = load_data_from_db()
 
-    # train_to_predict_time(data)
+    train_to_predict_time(data)
     #
-    # train_to_predict_finish(data)
+    train_to_predict_finish(data)
 
-    grid_train_to_predict_time(data)
+    # grid_train_to_predict_time(data)
