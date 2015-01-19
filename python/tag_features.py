@@ -8,7 +8,6 @@ host="localhost"
 
 def log(stats):
 
-  print "PostID: ", stats["postId"]
   print "Average frequency of Tags : ", stats["tag_popularity"]
   print "Number of Popular Tags (25): ", stats["num_pop_tags_25"]
   print "Number of Popular Tags (50): ", stats["num_pop_tags_50"]
@@ -36,12 +35,11 @@ def tagSpecificity(tags):
     return 0
 
 
-def calcTagFeatures(postId, tags):
+def calcTagFeatures(tags):
 
   tagStats = queryTagStatistic(tags)
 
   stats = {
-    "postId" : postId,
     "tag_popularity" : 0,
     "tag_specificity" : 0,
     "num_pop_tags_25" : 0,
@@ -72,7 +70,6 @@ def queryTogetherness(tagCombo):
     cnx.close()
 
 
-# ========= Main Entry Point ============
 def queryTagStatistic(tags):
 
   try:

@@ -3,10 +3,14 @@ from flask.json import jsonify
 import requests
 import text_features as TextFeatures
 import tag_features as TagFeatures
+import comment_features as CommentFeatures
 import re
+import random
 
 app=Flask(__name__)
 RE_QEUSTIONID = re.compile("(\d+)")
+
+predictionDict = {}
 
 # ----- Routes ----------
 
@@ -29,20 +33,27 @@ def submitQuestion():
 @app.route("/<int:questionId>")
 def questionDetailsPage(questionId):
   # Return an HTML Page listing all features and predicitions for a question
-  stats = getMetadata(questionId)
-  return render_template("details.html", stats=stats, questionId=questionId)
+  stats = getFeatures(questionId)
+  prediction = getPrediction(questionId)
+  print prediction
+  return render_template("details.html", stats=stats, questionId=questionId, prediction=prediction)
 
 
-@app.route("/api/<int:questionId>")
-def jsonMetadata(questionId):
-  return jsonify(getMetadata(questionId))
+@app.route("/api/features/<int:questionId>")
+def jsonFeatures(questionId):
+  return jsonify(getFeatures(questionId))
+
+
+@app.route("/api/predictions/<int:questionId>")
+def jsonPrediction(questionId):
+  return jsonify(getPrediction(questionId))
 
 
 # -------- Prediction & Features --------
-def getMetadata(questionId):
+def getFeatures(questionId):
 
-  question, answers = queryStackoverflow(questionId)
-  return calcFeatures(question)
+  question, answers, comments = queryStackoverflow(questionId)
+  return calcFeatures(question, comments)
 
 
 # Fetch the question and answer from the SO API
@@ -50,26 +61,37 @@ def queryStackoverflow(questionId):
 
   questionRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s?site=stackoverflow&filter=withbody" % questionId)
   answersRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s/answers?site=stackoverflow" % questionId)
+  commentRequest = requests.get("https://api.stackexchange.com/2.2/questions/%s/comments?site=stackoverflow&filter=withbody" % questionId)
 
   question = questionRequest.json()["items"][0]
   answers = answersRequest.json()["items"]
+  comments = commentRequest.json()["items"]
 
-  return question, answers
+  return question, answers, comments
 
 
 # Calculate all text, tag and XYZ features for the SVM
-def calcFeatures(question):
+def calcFeatures(question, comments):
 
   return {
     "textFeatures" : TextFeatures.calcTextFeatures(question["question_id"], question["body"], question["title"]),
-    "tagFeatures" : TagFeatures.calcTagFeatures(question["question_id"], question["tags"])
+    "tagFeatures" : TagFeatures.calcTagFeatures(question["tags"]),
+    "commentFeatures" : CommentFeatures.calcCommentFeatures(comments)
   }
 
 
-# do the prediction
-def doSuccessPrediction():
-  calcFeatures()
-  return
+def getPrediction(questionId):
+
+  if questionId in predictionDict:
+    print predictionDict
+    print "I was here "
+    return predictionDict[questionId]
+  else:
+    predictionDict[questionId] = {
+      "success" : random.choice([True, False]),
+      "withinTimeInterval" : random.choice([True, False])
+    }
+    return predictionDict[questionId]
 
 
 if __name__ == "__main__":
