@@ -3,8 +3,10 @@ from mysql.connector import errorcode
 import re
 
 TAG_RE = re.compile(r'<[^>]+>')
-CODE_RE = re.compile(r'<code>(.*?)</code>')
-IMG_RE = re.compile(r'<img (.*?)/?>')
+INLINE_CODE_RE = re.compile(r'`[^`]+`')
+PRE_RE = re.compile(r'<pre>(.*?)</pre>', re.DOTALL)
+CODE_RE = re.compile(r'<code>(.*?)</code>', re.DOTALL)
+IMG_RE = re.compile(r'<img (.*?)/?>', re.DOTALL)
 SELF_RE = re.compile(r'I(?=\')|I(?=\s)|we(?=\s)|me(?=\s)|myself(?=\s)|our(?=\s)', re.IGNORECASE)
 VERBS_RE = re.compile(r'run(?=\s)|tried(?=\s)|did(?=\s)|made(?=\s)|used(?=\s)|tested(?=\s)')
 
@@ -14,11 +16,15 @@ def removeTags(text):
     return TAG_RE.sub('', text)
 
 
+def removeCode(text):
+  return INLINE_CODE_RE.sub('', CODE_RE.sub('', PRE_RE.sub('', text)))
+
+
 def containsCodeSample(text):
-  return len(numberOfCodeSnippets(text)) > 0
+  return len(number_of_code_snippets(text)) > 0
 
 
-def numberOfCodeSnippets(text):
+def number_of_code_snippets(text):
   snippets = CODE_RE.findall(text)
   # exclude tiny inline code snippets
   return len(filter(lambda x: len(x) >= CODE_SAMPLE_THRESHOLD, snippets))
@@ -86,12 +92,12 @@ def calcTextFeatures(postId, body, title):
   }
 
   #calculate all code-based features with HTML tags still intact
-  stats["num_code_snippet"] = numberOfCodeSnippets(body)
+  stats["num_code_snippet"] = number_of_code_snippets(body)
   stats["code_len"] = lengthOfCodeSnippets(body)
   stats["num_images"] = numberOfImages(body)
 
   # remove all outer HTML tags
-  body = removeTags(body)
+  body = removeTags(removeCode(body))
 
   # body features
   stats["body_len"] = textLength(body)
