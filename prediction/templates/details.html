@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% include "search.html" %}
+
+{% block content %}
+<div class="row">
+  <h2>Results for Question {{ questionId }}</h2>
+  <div class="well">
+    <h3>Predicition</h3>
+    <p>The Bounty generates at least one answer: {{ prediction.success|e }}</p>
+    <p>An answer is posted within 2.5 days: {{ prediction.withinTimeInterval|e }}</p>
+  </div>
+
+{% for category, features in stats.iteritems() %}
+  <div class="well">
+    <h3>{{ category|e }}</h3>
+    <ul>
+      {% for key, value in features.iteritems() %}
+        <li>{{ key|e }} : {{ value|e }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endfor %}
+
+<div>
+{% endblock %}
+
