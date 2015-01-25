@@ -1,8 +1,10 @@
+import ConfigParser
 import mysql.connector
 import itertools
 from mysql.connector import errorcode
 import re
 import time
+from database import Database
 
 TAG_EXTRACTOR = re.compile(r'<([^>]+)>')
 page_size = 50000
@@ -136,62 +138,37 @@ def analyze_posts(start_offset):
     # out before we get a chance to process all posts
     global num_questions
 
-    last_id = start_offset
-    is_empty = False
-    try:
-        cnx = mysql.connector.connect(user="root",
-                                      database="stackoverflow",
-                                      host="localhost")
+    config = ConfigParser.RawConfigParser()
+    config.read('application.cfg')
+    
+    db = Database(config)
 
-        writer = mysql.connector.connect(user="root",
-                                         database="stackoverflow",
-                                         host="localhost")
+    writer, write_cursor = db.cursor()
 
-        write_cursor = writer.cursor()
+    for row in db.paged_query(select="Tags", from_="posts", where="ParentId is null", include_id=True):
+        tag_string = row[1]
+        if tag_string is not None:
+            tags = TAG_EXTRACTOR.findall(tag_string)
 
-        cursor = cnx.cursor(dictionary=True)
+            for tag in tags:
+                tag_counter[tag] = 1 + tag_counter.get(tag, 0)
+                if tag in tag_ids:
+                    tag_id = tag_ids[tag]
+                else:
+                    tag_id = len(tag_ids) + 1
+                    tag_ids[tag] = tag_id
+                post_tag_cache.append((tag_id, row[0]))
 
-        while not is_empty:
-            cursor.execute("Select Tags, Id FROM posts WHERE ParentId is null AND Id > %d ORDER BY Id ASC LIMIT %d" % (last_id, page_size))
-            is_empty = True
-            for row in cursor:
-                is_empty = False
+            for tag_combo in itertools.combinations(sorted(tags), 2):
+                tag_combos_counter[tag_combo] = 1 + tag_combos_counter.get(tag_combo, 0)
 
-                tag_string = row["Tags"]
-                if tag_string is not None:
-                    tags = TAG_EXTRACTOR.findall(tag_string)
+            if num_questions % 2000 == 0:
+                insertIntoTagPostMap(post_tag_cache, write_cursor, writer)
+                del post_tag_cache[:]
+                print "%d. %d s %s" % (num_questions, (int(time.time()) - start_time), tags)
 
-                    for tag in tags:
-                        tag_counter[tag] = 1 + tag_counter.get(tag, 0)
-                        if tag in tag_ids:
-                            tagId = tag_ids[tag]
-                        else:
-                            tagId = len(tag_ids) + 1
-                            tag_ids[tag] = tagId
-                        post_tag_cache.append((tagId, row["Id"]))
-
-                    for tag_combo in itertools.combinations(sorted(tags), 2):
-                        tag_combos_counter[tag_combo] = 1 + tag_combos_counter.get(tag_combo, 0)
-
-                    if num_questions % 2000 == 0:
-                        insertIntoTagPostMap(post_tag_cache, write_cursor, writer)
-                        del post_tag_cache[:]
-                        print "%d. %d s %s" % (num_questions, (int(time.time()) - start_time), tags)
-
-                num_questions += 1
-                last_id = row["Id"]
-
-        insertIntoTagPostMap(post_tag_cache, write_cursor, writer)
-    except mysql.connector.Error as err:
-        print "ERROR: "
-        print err
-        cnx.close()
-        writer.close()
-        analyze_posts(last_id)
-        return 0
-    else:
-        cnx.close()
-        writer.close()
+        num_questions += 1
+    insertIntoTagPostMap(post_tag_cache, write_cursor, writer)
 
 # ========= Main Entry Point ============
 if __name__ == "__main__":
