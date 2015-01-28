@@ -11,6 +11,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 tokenizer = None
 
+
 def _process_row(row):
     if row[1] is None:
         return row[0], []
@@ -19,13 +20,14 @@ def _process_row(row):
 
 
 class SOQuestionCorpus(corpora.TextCorpus):
-    def __init__(self, tokenizer, processes=None, query_page_size=50000):
+    def __init__(self, tokenizer, processes=None, query_page_size=50000, subsample=1.0):
         self.tokenizer = tokenizer
         self.processes = processes
+        self.subsample = subsample
         self.query_page_size = query_page_size
         print "Creating dictionary..."
         super(SOQuestionCorpus, self).__init__(input=True)
-        self.dictionary.filter_extremes(no_below=5, no_above=0.5)
+        self.dictionary.filter_extremes(no_below=3, no_above=0.2)
 
     def get_texts(self):
         return self.question_body_stream()
@@ -40,14 +42,15 @@ class SOQuestionCorpus(corpora.TextCorpus):
         config = ConfigParser.RawConfigParser()
         config.read('application.cfg')
         db = Database(config)
-        query_results = db.paged_query(select="Body", from_="posts", where="PostTypeId=1", page_size=self.query_page_size)
+        query_results = db.paged_query(select="Body", from_="posts", where="PostTypeId=1",
+                                       page_size=self.query_page_size, subsample=self.subsample)
         pool = multiprocessing.Pool(self.processes)
         for page in query_results:
-            for Id, tokens in pool.map(_process_row, page):
-                if tokens:
-                    yield tokens
-                else:
-                    print "ERROR in row %s" % Id
+           for Id, tokens in pool.map(_process_row, page):
+               if tokens:
+                   yield tokens
+               else:
+                   print "ERROR in row %s" % Id
         pool.terminate()
 
 
@@ -60,9 +63,9 @@ class SOQuestionTopicModel(object):
 
 
     @staticmethod
-    def train(name, tokenizer, num_topics=100, load_corpus_from_file=False, query_page_size=50000):
+    def train(name, tokenizer, num_topics=100, load_corpus_from_file=False, query_page_size=50000, subsample=1.0):
         if not load_corpus_from_file:
-            corpus = SOQuestionCorpus(tokenizer, query_page_size=query_page_size)
+            corpus = SOQuestionCorpus(tokenizer, query_page_size=query_page_size, subsample=subsample)
             print "Storing corpus for %s name..." % name
             corpora.MmCorpus.serialize('output/%s.mm' % name, corpus, progress_cnt=10000)
             print "Storing dictionary for %s..." % name
@@ -99,7 +102,8 @@ def vp_topic_model(name, load_from_file=False):
     if load_from_file:
         return SOQuestionTopicModel.load(name, chunker.chunk_text)
     else:
-        vp_model = SOQuestionTopicModel.train(name, chunker.chunk_text, load_corpus_from_file=False, num_topics=100, query_page_size=1000)
+        vp_model = SOQuestionTopicModel.train(name, chunker.chunk_text, load_corpus_from_file=False, num_topics=100,
+                                              query_page_size=1000, subsample=0.2)
         vp_model.save()
         return vp_model
 
@@ -109,7 +113,7 @@ def complete_topic_model(name, load_from_file=False):
         return SOQuestionTopicModel.load(name, utils.simple_preprocess)
     else:
         whole_model = SOQuestionTopicModel.train(whole_name, utils.simple_preprocess, load_corpus_from_file=True,
-                                                 num_topics=150, query_page_size=1000)
+                                                 num_topics=150, query_page_size=1000, subsample=1.0)
         whole_model.save(name)
         return whole_model
 
@@ -118,6 +122,6 @@ if __name__ == "__main__":
     whole_name = "whole_question"
     vp_name = "VP_question"
 
-    complete_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % whole_name))
+    # complete_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % whole_name))
 
-    # vp_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % vp_name))
+    vp_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % vp_name))

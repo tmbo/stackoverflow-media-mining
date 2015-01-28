@@ -1,5 +1,6 @@
 import mysql.connector
 from mysql.connector import errorcode
+import math
 
 
 class Database(object):
@@ -18,10 +19,10 @@ class Database(object):
         con = self.connection()
         return con, con.cursor(**kwargs)
 
-    def paged_query(self, select, from_, where, start_offset=0, page_size=50000):
+    def paged_query(self, select, from_, where, start_offset=0, page_size=50000, subsample=1.0):
         # We need to use pagination here. Since we are expecting something around 8 million results the cursor will time
         # out before we get a chance to process all posts
-        print "called page query"
+        # print "called page query"
 
         last_id = start_offset
         is_empty = False
@@ -37,9 +38,14 @@ class Database(object):
                 cursor.execute(query_template % (_select, from_, _where, last_id, page_size))
                 results = cursor.fetchall()
                 # print "Fetched results."
+
                 if len(results) > 0:
                     last_id = results[-1][0]
-                    yield results
+                    if subsample != 1.0:
+                        end_idx = min(int(page_size * subsample), len(results))
+                        yield results[0:end_idx]
+                    else:
+                        yield results
                 else:
                     is_empty = True
 
@@ -53,7 +59,7 @@ class Database(object):
                 print err
                 db.close()
                 print "Rec call: "
-                for r in self.paged_query(select, from_, where, last_id, page_size):
+                for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample):
                     yield r
         else:
             db.close()
