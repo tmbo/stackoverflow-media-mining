@@ -1,5 +1,5 @@
 from gensim import utils, models, corpora
-from database import Database
+# from database import Database
 from text_features import removeTags, removeCode
 from chunking import TextChunker
 import os
@@ -72,7 +72,7 @@ class SOQuestionTopicModel(object):
         dictionary = corpora.Dictionary.load('output/%s.dict' % name)
 
         print "Training model for %s" % name
-        model = models.LdaMulticore(corpus=corpus, passes=10, num_topics=num_topics, id2word=dictionary, batch=True)
+        model = models.LdaMulticore(corpus=corpus, iterations=50, chunksize=5000, num_topics=num_topics, id2word=dictionary, eval_every=3, workers=5)
 
         return SOQuestionTopicModel(name, model, dictionary, tokenizer)
 
@@ -99,7 +99,7 @@ def vp_topic_model(name, load_from_file=False):
     if load_from_file:
         return SOQuestionTopicModel.load(name, chunker.chunk_text)
     else:
-        vp_model = SOQuestionTopicModel.train(name, chunker.chunk_text, load_corpus_from_file=False, num_topics=100, query_page_size=1000)
+        vp_model = SOQuestionTopicModel.train(name, chunker.chunk_text, load_corpus_from_file=True, num_topics=100, query_page_size=1000)
         vp_model.save()
         return vp_model
 
@@ -110,7 +110,7 @@ def complete_topic_model(name, load_from_file=False):
     else:
         whole_model = SOQuestionTopicModel.train(whole_name, utils.simple_preprocess, load_corpus_from_file=True,
                                                  num_topics=150, query_page_size=1000)
-        whole_model.save(name)
+        whole_model.save()
         return whole_model
 
 
@@ -118,6 +118,6 @@ if __name__ == "__main__":
     whole_name = "whole_question"
     vp_name = "VP_question"
 
-    complete_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % whole_name))
+    # complete_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % whole_name))
 
-    # vp_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % vp_name))
+    vp_topic_model(vp_name, load_from_file=os.path.isfile("output/%s_model.lda" % vp_name))
