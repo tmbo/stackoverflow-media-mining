@@ -15,7 +15,7 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
-python/output
+prediction/output
 
 # Scala-IDE specific
 .scala_dependencies
