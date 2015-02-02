@@ -4,6 +4,8 @@ import requests
 import text_features as TextFeatures
 import tag_features as TagFeatures
 import comment_features as CommentFeatures
+import text_statistics as ShallowTextFeatures
+from text_features import removeTags, removeCode
 import re
 import random
 
@@ -73,18 +75,19 @@ def queryStackoverflow(questionId):
 # Calculate all text, tag and XYZ features for the SVM
 def calcFeatures(question, comments):
 
+  text = removeTags(removeCode(question["body"]))
+
   return {
     "textFeatures" : TextFeatures.calcTextFeatures(question["question_id"], question["body"], question["title"]),
     "tagFeatures" : TagFeatures.calcTagFeatures(question["tags"]),
-    "commentFeatures" : CommentFeatures.calcCommentFeatures(comments)
+    "commentFeatures" : CommentFeatures.calcCommentFeatures(comments),
+    "shallowLinguisticFeatures" : ShallowTextFeatures.TextStatistics(text).calcShallowTextFeatures()
   }
 
 
 def getPrediction(questionId):
 
   if questionId in predictionDict:
-    print predictionDict
-    print "I was here "
     return predictionDict[questionId]
   else:
     predictionDict[questionId] = {
