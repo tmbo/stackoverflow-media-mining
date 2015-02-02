@@ -7,7 +7,7 @@ from utils import removeTags, removeCode
 from chunking import MultithreadedTextChunker
 from operator import itemgetter
 from text_statistics import TextStatistics
-from train_lda import SOQuestionTopicModel
+from train_lda import vp_topic_model, complete_topic_model
 import logging
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -61,20 +61,14 @@ if __name__ == "__main__":
         preprocessed_body = map(lambda row: removeTags(removeCode(row[1].encode("utf-8"))).lower(), rows)
 
         print "Loading models..."
-        vp_model = SOQuestionTopicModel.load_from_file(vp_name)
-        whole_model = SOQuestionTopicModel.load_from_file(whole_name, utils.simple_preprocess)
-
-        print "Chunking text..."
-        chunker = MultithreadedTextChunker(stem_chunks=False)
-        chunker.train()
-        chunked = chunker.chunk_texts(preprocessed_body)
-        print "Finished chunking text..."
+        vp_model = vp_topic_model(vp_name,load_from_file=True)
+        whole_model = complete_topic_model(whole_name, load_from_file=True)
 
         updateData = []
 
         for idx, row in enumerate(rows):
-            whole_topics = whole_model.topics(preprocessed_body, False)
-            vp_topics = vp_model.topics(chunked[idx], True)
+            whole_topics = whole_model.topics(preprocessed_body[idx])
+            vp_topics = vp_model.topics(preprocessed_body[idx])
 
             data = []
             stats = TextStatistics(preprocessed_body)
