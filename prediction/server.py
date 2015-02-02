@@ -5,12 +5,13 @@ import text_features as TextFeatures
 import tag_features as TagFeatures
 import comment_features as CommentFeatures
 import text_statistics as ShallowTextFeatures
+import bounty_features as BountyFeatures
 from text_features import removeTags, removeCode
 import re
 import random
 
 app=Flask(__name__)
-RE_QEUSTIONID = re.compile("(\d+)")
+RE_QUESTIONID = re.compile("(\d+)")
 
 predictionDict = {}
 
@@ -25,7 +26,7 @@ def index():
 def submitQuestion():
   question = request.form["question"]
   if question:
-    questionId = RE_QEUSTIONID.search(question).group()
+    questionId = RE_QUESTIONID.search(question).group()
     return redirect(url_for("questionDetailsPage", questionId=questionId))
   else:
     flash("Unable to find this question.")
@@ -81,7 +82,8 @@ def calcFeatures(question, comments):
     "textFeatures" : TextFeatures.calcTextFeatures(question["question_id"], question["body"], question["title"]),
     "tagFeatures" : TagFeatures.calcTagFeatures(question["tags"]),
     "commentFeatures" : CommentFeatures.calcCommentFeatures(comments),
-    "shallowLinguisticFeatures" : ShallowTextFeatures.TextStatistics(text).calcShallowTextFeatures()
+    "shallowLinguisticFeatures" : ShallowTextFeatures.TextStatistics(text).calcShallowTextFeatures(),
+    "bountyFeatures" : BountyFeatures.calcBountyFeatures(question)
   }
 
 
@@ -104,4 +106,5 @@ if __name__ == "__main__":
     SECRET_KEY="asassdfs"
   )
   app.run(port=9000)
-  url_for('static', filename='style.css')
+  url_for('static/img', filename="apple-touch-icon.png")
+
