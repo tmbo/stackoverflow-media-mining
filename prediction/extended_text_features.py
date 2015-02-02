@@ -3,7 +3,7 @@ import mysql.connector
 from mysql.connector import errorcode
 from gensim import utils
 from database import Database
-from text_features import removeTags, removeCode
+from utils import removeTags, removeCode
 from chunking import MultithreadedTextChunker
 from operator import itemgetter
 from text_statistics import TextStatistics
@@ -20,13 +20,13 @@ def extract_best_topics(els, n):
 def updateTopicFeatures(data, cursor, writer):
     try:
         query = """UPDATE training_features, bounties b
-            SET body_avg_chars=%s, 
-                body_avg_words=%s, 
-                body_ari=%s, 
-                body_cli=%s, 
-                body_fre=%s, 
-                body_gfi=%s, 
-                topics=%s, 
+            SET body_avg_chars=%s,
+                body_avg_words=%s,
+                body_ari=%s,
+                body_cli=%s,
+                body_fre=%s,
+                body_gfi=%s,
+                topics=%s,
                 vp_topics=%s
             WHERE b.QuestionId=%s and b.Id = training_features.Id"""
         cursor.executemany(query, data)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
         config = ConfigParser.RawConfigParser()
         config.read('application.cfg')
-        
+
         cnx = Database(config).connection()
 
         print "Starting number crunching\n"

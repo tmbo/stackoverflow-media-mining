@@ -1,6 +1,5 @@
 from gensim import utils, models, corpora
 # from database import Database
-#from text_features import removeTags, removeCode
 from chunking import TextChunker
 import os
 import logging

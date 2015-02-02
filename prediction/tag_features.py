@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import errorcode
 import itertools
+from utils import *
 
 user="root"
 database="stackoverflow"
@@ -39,19 +40,16 @@ def calcTagFeatures(tags):
 
   tagStats = queryTagStatistic(tags)
 
-  stats = {
-    "tag_popularity" : 0,
-    "tag_specificity" : 0,
-    "num_pop_tags_25" : 0,
-    "num_pop_tags_50" : 0,
-    "num_pop_tags_100" : 0,
-  }
+  stats = {}
 
   stats["num_pop_tags_25"] = numberOfPopularTags(tagStats, 25)
   stats["num_pop_tags_50"] = numberOfPopularTags(tagStats, 50)
   stats["num_pop_tags_100"] = numberOfPopularTags(tagStats, 100)
   stats["tag_popularity"] = tagPopularity(tagStats)
   stats["tag_specificity"] = tagSpecificity(tags)
+  stats["log_tag_specificity"] = trunc_log10(stats["tag_specificity"])
+  stats["log_tag_popularity"] = trunc_log10(stats["tag_popularity"])
+  stats["log_tag_specificity"] = trunc_log10(stats["tag_specificity"])
 
   return stats
 

@@ -1,4 +1,4 @@
-from flask import * #Flask, render_template, request, flash, redirect
+from flask import *
 from flask.json import jsonify
 import requests
 import text_features as TextFeatures
@@ -6,7 +6,7 @@ import tag_features as TagFeatures
 import comment_features as CommentFeatures
 import text_statistics as ShallowTextFeatures
 import bounty_features as BountyFeatures
-from text_features import removeTags, removeCode
+from utils import *
 import re
 import random
 

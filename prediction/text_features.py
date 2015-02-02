@@ -1,24 +1,14 @@
 import mysql.connector
 from mysql.connector import errorcode
+from utils import *
 import re
 
-TAG_RE = re.compile(r'<[^>]+>')
-INLINE_CODE_RE = re.compile(r'`[^`]+`')
-PRE_RE = re.compile(r'<pre>(.*?)</pre>', re.DOTALL)
 CODE_RE = re.compile(r'<code>(.*?)</code>', re.DOTALL)
 IMG_RE = re.compile(r'<img (.*?)/?>', re.DOTALL)
 SELF_RE = re.compile(r'I(?=\')|I(?=\s)|we(?=\s)|me(?=\s)|myself(?=\s)|our(?=\s)', re.IGNORECASE)
 VERBS_RE = re.compile(r'run(?=\s)|tried(?=\s)|did(?=\s)|made(?=\s)|used(?=\s)|tested(?=\s)')
 
 CODE_SAMPLE_THRESHOLD = 10
-
-def removeTags(text):
-    return TAG_RE.sub('', text)
-
-
-def removeCode(text):
-  return INLINE_CODE_RE.sub('', CODE_RE.sub('', PRE_RE.sub('', text)))
-
 
 def containsCodeSample(text):
   return len(number_of_code_snippets(text)) > 0
@@ -78,23 +68,14 @@ def log(stats):
 
 def calcTextFeatures(postId, body, title):
 
-  stats = {
-    "postId" : postId,
-    "num_code_snippet" : 0,
-    "num_images" : 0,
-    "code_len" : 0,
-    "body_len" : 0,
-    "title_len" : 0,
-    "end_que_mark" : False,
-    "begin_que_word" : False,
-    "num_selfref" : 0,
-    "num_active_verb" : 0
-  }
+  stats = {}
 
   #calculate all code-based features with HTML tags still intact
   stats["num_code_snippet"] = number_of_code_snippets(body)
   stats["code_len"] = lengthOfCodeSnippets(body)
   stats["num_images"] = numberOfImages(body)
+  stats["log_code_snippet"] = trunc_log10(stats["num_code_snippet"])
+  stats["log_code_len"] = trunc_log10(stats["code_len"])
 
   # remove all outer HTML tags
   body = removeTags(removeCode(body))
@@ -103,6 +84,9 @@ def calcTextFeatures(postId, body, title):
   stats["body_len"] = textLength(body)
   stats["num_selfref"] = numberOfSelfRef(body)
   stats["num_active_verb"] = numberOfActionVerbs(body)
+  stats["log_body_len"] = trunc_log10(stats["body_len"])
+  stats["log_selfref"] = trunc_log10(stats["num_selfref"])
+  stats["log_active_verb"] = trunc_log10(stats["num_active_verb"])
 
   # title features
   stats["title_len"] = textLength(title)

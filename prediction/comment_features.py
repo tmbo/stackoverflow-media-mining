@@ -1,11 +1,4 @@
-import re
-
-TAG_RE = re.compile(r'<[^>]+>')
-
-
-def removeTags(text):
-    return TAG_RE.sub('', text)
-
+from utils import *
 
 def log(stats):
 
@@ -33,15 +26,13 @@ def averageCommentLength(commentLength, numComments):
 
 def calcCommentFeatures(comments):
 
-  stats = {
-    "num_comments" : 0,
-    "comment_len" : 0,
-    "avg_comment_len" : 0,
-  }
+  stats = {}
 
   stats["num_comments"] = numberOfComments(comments)
   stats["comment_len"] = commentLength(comments)
   stats["avg_comment_len"] = averageCommentLength(stats["comment_len"], stats["num_comments"])
+  stats["log_num_comments"] = trunc_log10(stats["num_comments"])
+  stats["log_comment_len"] = trunc_log10(stats["comment_len"])
 
   return stats
 

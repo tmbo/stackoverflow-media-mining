@@ -1,5 +1,6 @@
 import nltk
 from syllablecounter import cmusyllables
+from utils import *
 
 _syl_counter = cmusyllables()
 
@@ -69,12 +70,20 @@ class TextStatistics(object):
 
 
     def calcShallowTextFeatures(self):
-        return {
+        stats = {
             "avg_chars" : self.avg_chars(),
             "avg_words" : self.avg_words(),
             "automated_readability_index" : self.automated_readability_index(),
             "coleman_liau_index" : self.coleman_liau_index(),
             "flesch_reading_ease" : self.flesch_reading_ease(),
             "gunning_fog_index" : self.gunning_fog_index(),
-
         }
+
+        stats["log_avg_chars"] = trunc_log10(stats["avg_chars"])
+        stats["log_avg_words"] = trunc_log10(stats["avg_words"])
+        stats["log_automated_readability_index"] = trunc_log10(stats["automated_readability_index"])
+        stats["log_coleman_liau_index"] = trunc_log10(stats["coleman_liau_index"])
+        stats["log_flesch_reading_ease"] = trunc_log10(stats["flesch_reading_ease"])
+        stats["log_gunning_fog_index"] = trunc_log10(stats["gunning_fog_index"])
+
+        return stats
