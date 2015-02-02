@@ -17,7 +17,7 @@ class TextStatistics(object):
         self.syllables_per_word = self.count_syllables(words)
 
         self.num_syllables = sum(self.syllables_per_word)
-        self.num_chars = self._count_characters(text)
+        self.num_chars = self._count_characters()
         self.num_words = len(words)
         self.num_sentences = len(sentences)
         self.num_polysyllables = \
@@ -66,3 +66,15 @@ class TextStatistics(object):
 
     def count_syllables(self, words):
         return [self.syl_counter.SyllableCount(word) for word in words]
+
+
+    def calcShallowTextFeatures(self):
+        return {
+            "avg_chars" : self.avg_chars(),
+            "avg_words" : self.avg_words(),
+            "automated_readability_index" : self.automated_readability_index(),
+            "coleman_liau_index" : self.coleman_liau_index(),
+            "flesch_reading_ease" : self.flesch_reading_ease(),
+            "gunning_fog_index" : self.gunning_fog_index(),
+
+        }
