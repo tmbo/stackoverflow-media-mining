@@ -90,7 +90,7 @@ class SOQuestionTopicModel(object):
         self.model.save("output/%s_model.lda" % self.name)
 
     def topics(self, text):
-        return self.model[self._text_to_bow(SOQuestionCorpus.pre_process(text))]
+        return self.model[self._text_to_bow(self.tokenizer(text))]
 
     def _text_to_bow(self, text):
         return self.dictionary.doc2bow(text)

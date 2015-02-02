@@ -1,12 +1,11 @@
 from sklearn import svm
 from sklearn import cross_validation
-import numpy as np
 from sklearn import preprocessing
 import numpy as np
 from operator import itemgetter
 from sklearn.externals import joblib
 import time
-from sklearn.metrics import f1_score, roc_auc_score, precision_recall_fscore_support
+from sklearn.metrics import roc_auc_score, precision_recall_fscore_support
 from sklearn.grid_search import GridSearchCV
 
 name_of_feature_table = "training_features"
@@ -102,7 +101,7 @@ def train_to_predict_finish(data):
     prediction = clf.predict(X_test)
     precision, recall, fbeta, support = precision_recall_fscore_support(y_test, prediction)
     print "Scoring Finish-SVM on TEST data ..."
-    print "Finish-Trainings Accuracy: %f precision: %s recall: %s F1-score: %s support: %s ROC: %f" % (
+    print "SUCCESS-Trainings Accuracy: %f precision: %s recall: %s F1-score: %s support: %s ROC: %f" % (
     clf.score(X_test, y_test), precision, recall, fbeta, support, roc_auc_score(y_test, prediction))
 
     # prediction_train = clf.predict(X_train)
@@ -140,10 +139,10 @@ def train_to_predict_time(data):
     prediction = clf.predict(X_test)
 
     # store_svm(clf, "output/test.pkl")
-
+    precision, recall, fbeta, support = precision_recall_fscore_support(y_test, prediction)
     print "Scoring Time-SVM on test data ..."
-    print "Time-Trainings Accuracy: %f F1-score: %f ROC: %f" % (
-    clf.score(X_test, y_test), f1_score(y_test, prediction), roc_auc_score(y_test, prediction))
+    print "TIME-Trainings Accuracy: %f precision: %s recall: %s F1-score: %s support: %s ROC: %f" % (
+        clf.score(X_test, y_test), precision, recall, fbeta, support, roc_auc_score(y_test, prediction))
 
     # prediction_train = clf.predict(X_train)
     # print "Scoring Time-SVM on TRAINING data ..."
@@ -205,7 +204,7 @@ def extract_features(data):
     for row in data:
         features = [x for idx, x in enumerate(row) if idx in actives]  # remove the first four elements from the column (id and dates)
         if 'topic' in active_features:
-            topic_features = array_from_sparse(eval(str(row[-2])), 100)
+            topic_features = array_from_sparse(eval(str(row[-2])), 150)
             vp_topic_features = array_from_sparse(eval(str(row[-1])), 100)
             features.extend(topic_features)
             features.extend(vp_topic_features)
