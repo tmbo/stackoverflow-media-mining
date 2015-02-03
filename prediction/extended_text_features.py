@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
             data = []
             stats = TextStatistics(preprocessed_body)
-            data.append(stats.avg_chars)
-            data.append(stats.avg_words)
+            data.append(stats.avg_chars())
+            data.append(stats.avg_words())
             data.append(stats.automated_readability_index())
             data.append(stats.coleman_liau_index())
             data.append(stats.flesch_reading_ease())
