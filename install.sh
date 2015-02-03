@@ -34,4 +34,5 @@ sudo easy_install scikit-learn
 
 # Simple webserver for python
 sudo easy_install flask
+
 sudo easy_install requests
