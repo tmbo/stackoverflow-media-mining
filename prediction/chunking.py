@@ -1,14 +1,9 @@
 from nltk.chunk import tree2conlltags
-from nltk.corpus import conll2000
 from nltk import sent_tokenize, word_tokenize, pos_tag, BigramTagger, ChunkParserI
 from nltk.chunk.util import conlltags2tree
 from nltk.stem.snowball import EnglishStemmer
 import multiprocessing
-import datetime
-import nltk
 from nltk.corpus import conll2000
-from sklearn.svm import  LinearSVC, SVC
-from nltk.classify.scikitlearn import SklearnClassifier
 
 class TextChunker:
     contractionReplacements = {"'s": "is", "n't": "not", "'ll": "will", "'m": "am", "'re": "are", "'ve": "have",

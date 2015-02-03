@@ -1,40 +1,35 @@
 from utils import *
 
+
 def log(stats):
-
-  print "Number of Comments: ", stats["num_comments"]
-  print "Toal Comment Length: ", stats["comment_len"]
-  print "Average Comment Length: ", stats["avg_comment_len"]
-  print "-----------------------------------------"
-
-
-def numberOfComments(comments):
-  return len(comments)
+    print "Number of Comments: ", stats["num_comments"]
+    print "Toal Comment Length: ", stats["comment_len"]
+    print "Average Comment Length: ", stats["avg_comment_len"]
+    print "-----------------------------------------"
 
 
-def commentLength(comments):
-  lengths = map(lambda x: len(removeTags(x["body"])), comments)
-  return reduce(lambda sum, x: sum + x ,lengths , 0)
+def number_of_comments(comments):
+    return len(comments)
 
 
-def averageCommentLength(commentLength, numComments):
-  if numComments == 0:
-    return 0
-  else:
-    return commentLength / numComments
+def length_of_comments(comments):
+    return sum(map(lambda x: len(remove_tags(x["body"])), comments), 0)
 
 
-def calcCommentFeatures(comments):
+def average_comment_length(comment_length, num_comments):
+    return (comment_length / num_comments) if num_comments != 0 else 0
 
-  stats = {}
 
-  stats["num_comments"] = numberOfComments(comments)
-  stats["comment_len"] = commentLength(comments)
-  stats["avg_comment_len"] = averageCommentLength(stats["comment_len"], stats["num_comments"])
-  stats["log_num_comments"] = trunc_log10(stats["num_comments"])
-  stats["log_comment_len"] = trunc_log10(stats["comment_len"])
+def calc_comment_features(comments):
+    stats = dict()
 
-  return stats
+    stats["num_comments"] = number_of_comments(comments)
+    stats["comment_len"] = length_of_comments(comments)
+    stats["avg_comment_len"] = average_comment_length(stats["comment_len"], stats["num_comments"])
+    stats["log_num_comments"] = trunc_log10(stats["num_comments"])
+    stats["log_comment_len"] = trunc_log10(stats["comment_len"])
+
+    return stats
 
 
 

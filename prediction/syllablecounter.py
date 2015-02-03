@@ -2,18 +2,17 @@ import re
 from curses.ascii import isdigit
 from nltk.corpus import cmudict
 
-class cmusyllables(object):
 
+class CMUSyllables(object):
     def __init__(self):
 
-        self.dcSyllableDict = cmudict.dict()
+        self.dc_syllable_dict = cmudict.dict()
 
-        #-----
         # New structures for the SyllableCount3 routine
 
-        self.dcSyllable3WordCache = {}
+        self.dc_syllable3_word_cache = {}
 
-        self.liSyllable3SubSyllables = [
+        self.li_syllable3_sub_syllables = [
             'cial',
             'tia',
             'cius',
@@ -139,8 +138,8 @@ class cmusyllables(object):
             'ere$'
         ]
 
-        #global $split_array;
-        self.liSyllable3AddSyllables  = [
+        # global $split_array;
+        self.li_syllable3_add_syllables = [
             'ia',
             'riet',
             'dien',
@@ -161,8 +160,8 @@ class cmusyllables(object):
             '.eation$',
             '[aeiouym]bl$',
             '[aeiou]{3}',
-            '^mc','ism',
-            '^mc','asm',
+            '^mc', 'ism',
+            '^mc', 'asm',
             '([^aeiouy])1l$',
             '[^l]lien',
             '^coa[dglx].',
@@ -170,87 +169,78 @@ class cmusyllables(object):
             'dnt$'
         ]
 
-        #-----
         # Create a list of the compiled regex
 
-        self.liSyllable3RESubSyllables = []
-        self.liSyllable3REAddSyllables = []
+        self.li_syllable3_re_sub_syllables = []
+        self.li_syllable3_re_add_syllables = []
 
-        for LszRegEx in self.liSyllable3AddSyllables:
-            LreRegEx = re.compile(LszRegEx)
-            self.liSyllable3REAddSyllables.append(LreRegEx)
+        for lsz_regex in self.li_syllable3_add_syllables:
+            lre_regex = re.compile(lsz_regex)
+            self.li_syllable3_re_add_syllables.append(lre_regex)
 
-        for LszRegEx in self.liSyllable3SubSyllables:
-            LreRegEx = re.compile(LszRegEx)
-            self.liSyllable3RESubSyllables.append(LreRegEx)
+        for lsz_regex in self.li_syllable3_sub_syllables:
+            lre_regex = re.compile(lsz_regex)
+            self.li_syllable3_re_sub_syllables.append(lre_regex)
 
-    def NonCMUSyllableCount(self, AszWord):
+    def non_cmu_syllable_count(self, asz_word):
 
-        #LszWord = self._normalize_word( AszWord.lower() )
-        LszWord = AszWord
+        # LszWord = self._normalize_word( AszWord.lower() )
+        lsz_word = asz_word
 
-        #-----
         # If we've already seen this before then return the syllables
 
-        if LszWord in self.dcSyllable3WordCache:
-            return(self.dcSyllable3WordCache[LszWord])
+        if lsz_word in self.dc_syllable3_word_cache:
+            return self.dc_syllable3_word_cache[lsz_word]
 
-        #-----
-        #Split into parts on vowels and vowel sounds
+        # Split into parts on vowels and vowel sounds
 
-        LliWordParts = re.split(r'[^aeiouy]+', LszWord)
+        lli_word_parts = re.split(r'[^aeiouy]+', lsz_word)
 
-        #-----
         # Combine the valid parts of the word
 
-        LliValidWordParts = []
+        lli_valid_word_parts = []
 
-        for LszValue in LliWordParts:
-            if LszValue <> '':
-                LliValidWordParts.append(LszValue)
+        for lsz_value in lli_word_parts:
+            if lsz_value != '':
+                lli_valid_word_parts.append(lsz_value)
 
-        LinSyllables = 0
+        lin_syllables = 0
 
-        #-----
         # Loop through the compiled regexs looking for matches
 
-        for LreSylRE in self.liSyllable3RESubSyllables:
-            LinMatch = 0 if LreSylRE.search(LszWord) is None else 1
-            LinSyllables -= LinMatch
+        for LreSylRE in self.li_syllable3_re_sub_syllables:
+            lin_match = 0 if LreSylRE.search(lsz_word) is None else 1
+            lin_syllables -= lin_match
 
-        for LreSylRE in self.liSyllable3REAddSyllables:
-            LinMatch = 0 if LreSylRE.search(LszWord) is None else 1
-            LinSyllables += LinMatch
+        for LreSylRE in self.li_syllable3_re_add_syllables:
+            lin_match = 0 if LreSylRE.search(lsz_word) is None else 1
+            lin_syllables += lin_match
 
-        #-----
         # Now compute the syllable count by the number of vowels
 
-        LinSyllables += len(LliValidWordParts)
+        lin_syllables += len(lli_valid_word_parts)
 
-        #-----
         # If we've not found any there must be at least 1
 
-        LinSyllables = 1 if LinSyllables == 0 else LinSyllables
+        lin_syllables = 1 if lin_syllables == 0 else lin_syllables
 
-        #----
         # Record this result in the word cache
 
-        self.dcSyllable3WordCache[LszWord] = LinSyllables
+        self.dc_syllable3_word_cache[lsz_word] = lin_syllables
 
-        #-----
         # Return the result
 
-        return(LinSyllables)
+        return lin_syllables
 
-    def SyllableCount(self, AszWord, AlgFallBack=True):
-        LszWord = AszWord.lower()
+    def syllable_count(self, asz_word, alg_fallback=True):
+        lsz_word = asz_word.lower()
 
-        if len(LszWord) == 0 or LszWord not in self.dcSyllableDict:
-            if len(LszWord) == 0 or not AlgFallBack:
-                return(0)
+        if len(lsz_word) == 0 or lsz_word not in self.dc_syllable_dict:
+            if len(lsz_word) == 0 or not alg_fallback:
+                return 0
             else:
-                LliSyllableList = list((self.NonCMUSyllableCount(LszWord),))
+                lli_syllable_list = list((self.non_cmu_syllable_count(lsz_word),))
         else:
-            LliSyllableList = [len(list(y for y in x if isdigit(y[-1]))) for x in self.dcSyllableDict[LszWord]]
+            lli_syllable_list = [len(list(y for y in x if isdigit(y[-1]))) for x in self.dc_syllable_dict[lsz_word]]
 
-        return max(LliSyllableList)
+        return max(lli_syllable_list)

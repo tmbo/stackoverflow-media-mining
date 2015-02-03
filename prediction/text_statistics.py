@@ -1,8 +1,9 @@
 import nltk
-from syllablecounter import cmusyllables
+from syllablecounter import CMUSyllables
 from utils import *
 
-_syl_counter = cmusyllables()
+_syl_counter = CMUSyllables()
+
 
 class TextStatistics(object):
     def __init__(self, text):
@@ -13,7 +14,8 @@ class TextStatistics(object):
         self.syl_counter = _syl_counter
 
         sentences = nltk.sent_tokenize(text)
-        words = [token for sent in sentences for token in nltk.word_tokenize(sent) if len(token) >= 2 or token.lower() == "i"]
+        words = [token for sent in sentences for token in nltk.word_tokenize(sent) if
+                 len(token) >= 2 or token.lower() == "i"]
 
         self.syllables_per_word = self.count_syllables(words)
 
@@ -47,36 +49,34 @@ class TextStatistics(object):
     def coleman_liau_index(self):
         try:
             return 0.0588 * \
-                   (self.num_chars * 100 / self.num_words) - 0.296 * (self.num_sentences * 100 / self.num_words) - 15.8
+                (self.num_chars * 100 / self.num_words) - 0.296 * (self.num_sentences * 100 / self.num_words) - 15.8
         except ZeroDivisionError:
             return 0
 
     def flesch_reading_ease(self):
         try:
             return 206.835 - \
-                   1.015 * (self.num_words / self.num_sentences) - 84.6 * (self.num_syllables / self.num_words)
+                1.015 * (self.num_words / self.num_sentences) - 84.6 * (self.num_syllables / self.num_words)
         except ZeroDivisionError:
             return 0
 
     def gunning_fog_index(self):
         try:
             return 0.4 * (self.num_words / self.num_sentences + 100 * self.num_polysyllables / self.num_words)
-
         except ZeroDivisionError:
             return 0
 
     def count_syllables(self, words):
         return [self.syl_counter.SyllableCount(word) for word in words]
 
-
-    def calcShallowTextFeatures(self):
+    def calculate_shallow_text_features(self):
         stats = {
-            "avg_chars" : self.avg_chars(),
-            "avg_words" : self.avg_words(),
-            "automated_readability_index" : self.automated_readability_index(),
-            "coleman_liau_index" : self.coleman_liau_index(),
-            "flesch_reading_ease" : self.flesch_reading_ease(),
-            "gunning_fog_index" : self.gunning_fog_index(),
+            "avg_chars": self.avg_chars(),
+            "avg_words": self.avg_words(),
+            "automated_readability_index": self.automated_readability_index(),
+            "coleman_liau_index": self.coleman_liau_index(),
+            "flesch_reading_ease": self.flesch_reading_ease(),
+            "gunning_fog_index": self.gunning_fog_index(),
         }
 
         stats["log_avg_chars"] = trunc_log10(stats["avg_chars"])

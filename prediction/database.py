@@ -1,6 +1,6 @@
+import ConfigParser
 import mysql.connector
 from mysql.connector import errorcode
-import math
 
 
 class Database(object):
@@ -9,6 +9,12 @@ class Database(object):
         self.password = config.get("DB", "password")
         self.host = config.get("DB", "host")
         self.database = config.get("DB", "database")
+        
+    @staticmethod
+    def from_config(file_name='application.cfg'):
+        config = ConfigParser.RawConfigParser()
+        config.read(file_name)
+        return Database(config)
 
     def connection(self):
         return mysql.connector.connect(user=self.user,
