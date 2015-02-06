@@ -21,8 +21,15 @@ def trunc_log10(value):
         return 0
     else:
         return int(floor(log(value, 10)))
-    
-    
+
+
+def trunc_log2(value):
+    if value == 0:
+        return 0
+    else:
+        return int(floor(log(value, 2)))
+
+
 def ensure_folder_exists(folder):
     if not os.path.exists(folder):
         os.makedirs(folder)

@@ -1,3 +1,4 @@
+import nltk
 from nltk.chunk import tree2conlltags
 from nltk import sent_tokenize, word_tokenize, pos_tag, BigramTagger, ChunkParserI
 from nltk.chunk.util import conlltags2tree
@@ -35,7 +36,10 @@ class TextChunker:
     def _extract_chunks(self, tree, exclude):
         def traverse(tree):
             try:
-                tree.node
+                if nltk.__version__ == "2.0.4":
+                    tree.node
+                else:
+                    tree.label()
             except AttributeError:
                 if tree[1] in exclude or tree[0] in exclude or (tree[0] != "to" and tree[0] == tree[1]):
                     return []
@@ -46,7 +50,11 @@ class TextChunker:
                     else:
                         return [tree[0]]
             else:
-                if tree.node in exclude:
+                if nltk.__version__ == "2.0.4":
+                    node = tree.node
+                else:
+                    node = tree.label()
+                if node in exclude:
                     return []
                 else:
                     return [word for child in tree for word in traverse(child)]

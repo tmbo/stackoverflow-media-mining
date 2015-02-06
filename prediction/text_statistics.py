@@ -67,7 +67,7 @@ class TextStatistics(object):
             return 0
 
     def count_syllables(self, words):
-        return [self.syl_counter.SyllableCount(word) for word in words]
+        return [self.syl_counter.syllable_count(word) for word in words]
 
     def calculate_shallow_text_features(self):
         stats = {
@@ -79,11 +79,11 @@ class TextStatistics(object):
             "gunning_fog_index": self.gunning_fog_index(),
         }
 
-        stats["log_avg_chars"] = trunc_log10(stats["avg_chars"])
-        stats["log_avg_words"] = trunc_log10(stats["avg_words"])
-        stats["log_automated_readability_index"] = trunc_log10(stats["automated_readability_index"])
-        stats["log_coleman_liau_index"] = trunc_log10(stats["coleman_liau_index"])
-        stats["log_flesch_reading_ease"] = trunc_log10(stats["flesch_reading_ease"])
-        stats["log_gunning_fog_index"] = trunc_log10(stats["gunning_fog_index"])
+        stats["log_avg_chars"] = trunc_log2(stats["avg_chars"])
+        stats["log_avg_words"] = trunc_log2(stats["avg_words"])
+        stats["log_automated_readability_index"] = trunc_log2(stats["automated_readability_index"])
+        stats["log_coleman_liau_index"] = trunc_log2(stats["coleman_liau_index"])
+        stats["log_flesch_reading_ease"] = trunc_log2(stats["flesch_reading_ease"])
+        stats["log_gunning_fog_index"] = trunc_log2(stats["gunning_fog_index"])
 
         return stats
