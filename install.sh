@@ -19,6 +19,9 @@ sudo easy_install nltk
 sudo zypper install gcc-fortran
 sudo zypper install python-numpy
 
+# 7zip is needed to unpack the stackoverflow data
+sudo zypper install p7zip
+
 # Helper to run SVM training in reasonable amount of time
 # On the crawler server that resulted in problems when installing 
 # `numpy`, therfore install lapack after `numpy`
@@ -28,9 +31,6 @@ sudo zypper install python-scipy
 
 # LDA Topic models for python
 sudo easy_install gensim
-
-# Fast xml processing for python
-sudo easy_install lxml
 
 # SVMs for python
 sudo easy_install scikit-learn
