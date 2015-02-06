@@ -7,14 +7,14 @@
   <div class="well">
     <h3>Predicition</h3>
     <p>The Bounty generates at least one answer: {{ prediction.success|e }}</p>
-    <p>An answer is posted within 2.5 days: {{ prediction.withinTimeInterval|e }}</p>
+    <p>An answer is posted within 2.5 days: {{ prediction.time|e }}</p>
   </div>
 
-{% for category, features in stats.iteritems() %}
+{% for category, feature in features.iteritems() %}
   <div class="well">
     <h3>{{ category|e }}</h3>
     <ul>
-      {% for key, value in features.iteritems() %}
+      {% for key, value in feature.iteritems() %}
         <li>{{ key|e }} : {{ value|e }}</li>
       {% endfor %}
     </ul>

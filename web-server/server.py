@@ -12,6 +12,7 @@ import text_features
 import tag_features
 import comment_features
 import bounty_features
+from sklearn.externals import joblib
 from extended_text_features import TopicModel
 from text_statistics import TextStatistics
 from utils import *
@@ -45,9 +46,9 @@ def submitQuestion():
 @app.route("/<int:question_id>")
 def question_details_page(question_id):
     # Return an HTML Page listing all features and predicitions for a question
-    stats = get_features(question_id)
-    prediction = get_prediction(question_id)
-    return render_template("details.html", stats=stats, questionId=question_id, prediction=prediction)
+    features = get_features(question_id)
+    prediction = get_prediction(features)
+    return render_template("details.html", features=features, questionId=question_id, prediction=prediction)
 
 
 @app.route("/api/features/<int:question_id>")
@@ -57,7 +58,10 @@ def json_features(question_id):
 
 @app.route("/api/predictions/<int:question_id>")
 def json_prediction(question_id):
-    return jsonify(get_prediction(question_id))
+    features = get_features(question_id)
+    prediction = get_prediction(features)
+    print prediction
+    return jsonify(prediction)
 
 
 # -------- Prediction & Features --------
@@ -103,14 +107,16 @@ def calculate_features(question, comments):
 
 
 def get_prediction(question_id):
-    if question_id in prediction_dict:
-        return prediction_dict[question_id]
-    else:
-        prediction_dict[question_id] = {
-            "success": random.choice([True, False]),
-            "withinTimeInterval": random.choice([True, False])
-        }
-        return prediction_dict[question_id]
+
+    values = [0.0]*308
+
+    X_success = success_scaler.transform(values)
+    X_time = time_scaler.transform(values)
+
+    return {
+        "success" : success_svm.predict(X_success)[0],
+        "time" : time_svm.predict(X_time)[0]
+    }
 
 
 if __name__ == "__main__":
@@ -119,5 +125,18 @@ if __name__ == "__main__":
         DEBUG=True,
         SECRET_KEY="asassdfs"
     )
+
+    # Load the trained SVM from disk
+    svm_dir = os.path.dirname(os.path.realpath(__file__))
+    svm_dir = os.path.join(svm_dir, "..", "output", "svms")
+
+    success_svm = joblib.load(os.path.join(svm_dir, "success_svm.pkl"))
+    success_scaler = joblib.load(os.path.join(svm_dir, "success_scaler.pkl"))
+
+    time_svm = joblib.load(os.path.join(svm_dir, "time_svm.pkl"))
+    time_scaler = joblib.load(os.path.join(svm_dir, "time_scaler.pkl"))
+
+    # Start the Flask app
     app.run(port=9000)
+
 
