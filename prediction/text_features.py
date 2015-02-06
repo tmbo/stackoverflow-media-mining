@@ -122,11 +122,11 @@ WHERE PostId=%s
 if __name__ == "__main__":
 
     try:
-        cnx = Database.from_config()
+        database = Database.from_config()
 
         print "Starting number crunching\n"
 
-        cursor = cnx.cursor()
+        cnx, cursor = database.cursor()
         cursor.execute("Select * FROM bounty_text")
         rows = cursor.fetchall()
 

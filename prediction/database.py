@@ -1,6 +1,4 @@
 import ConfigParser
-import mysql.connector
-from mysql.connector import errorcode
 
 
 class Database(object):
@@ -9,17 +7,24 @@ class Database(object):
         self.password = config.get("DB", "password")
         self.host = config.get("DB", "host")
         self.database = config.get("DB", "database")
-        
+        self.db_type = config.get("DB", "typ")
+
     @staticmethod
-    def from_config(file_name='application.cfg'):
+    def from_config(file_name='../application.cfg'):
         config = ConfigParser.RawConfigParser()
         config.read(file_name)
         return Database(config)
 
     def connection(self):
-        return mysql.connector.connect(user=self.user,
-                                       database=self.database,
-                                       host=self.host)
+        if self.db_type == "mysql":
+            import mysql.connector
+            return mysql.connector.connect(user=self.user,
+                                           database=self.database,
+                                           host=self.host)
+        elif self.db_type == "hana":
+            return None
+        else:
+            raise Exception("Unknown database type setting in application configuration.")
 
     def cursor(self, **kwargs):
         con = self.connection()
@@ -38,7 +43,7 @@ class Database(object):
         try:
             db = self.connection()
 
-            cursor = db.cursor()
+            con, cursor = db.cursor()
             while not is_empty:
                 # print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
                 cursor.execute(query_template % (_select, from_, _where, last_id, page_size))
@@ -55,17 +60,12 @@ class Database(object):
                 else:
                     is_empty = True
 
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("Something is wrong with your user name or password")
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("Database does not exists")
-            else:
-                print "ERROR: "
-                print err
-                db.close()
-                print "Rec call: "
-                for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample):
-                    yield r
+        except Exception as err:
+            print "Database ERROR: "
+            print err
+            db.close()
+            print "Rec call: "
+            for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample):
+                yield r
         else:
             db.close()
