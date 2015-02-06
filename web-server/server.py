@@ -12,11 +12,13 @@ import text_features
 import tag_features
 import comment_features
 import bounty_features
+from extended_text_features import TopicModel
 from text_statistics import TextStatistics
 from utils import *
 
 app = Flask(__name__)
 RE_QUESTIONID = re.compile("(\d+)")
+topic_model = TopicModel()
 
 prediction_dict = dict()
 
@@ -34,7 +36,7 @@ def submitQuestion():
         regex_result = RE_QUESTIONID.search(question)
         if regex_result:
             question_id = regex_result.group()
-            return redirect(url_for("rofl", question_id=question_id))
+            return redirect(url_for("question_details_page", question_id=question_id))
 
     flash("Unable to find this question.")
     return redirect(url_for("index"))
@@ -82,13 +84,21 @@ def query_stackoverflow(question_id):
 
 # Calculate all text, tag and XYZ features for the SVM
 def calculate_features(question, comments):
-    print
+    processed_body = remove_tags(remove_code(question["body"]))
+
     return {
         "textFeatures": text_features.calculate_text_features(question["question_id"], question["body"], question["title"]),
         "tagFeatures": tag_features.calculate_tag_features(question["tags"]),
         "commentFeatures": comment_features.calculate_comment_features(comments),
-        "shallowLinguisticFeatures": TextStatistics(remove_tags(remove_code(question["body"]))).calculate_shallow_text_features(),
-        "bountyFeatures": bounty_features.calculate_bounty_features(question)
+        "shallowLinguisticFeatures": TextStatistics(processed_body).calculate_shallow_text_features(),
+        "bountyFeatures": bounty_features.calculate_bounty_features(question),
+        "topicVPFeatures" : {
+            "topics" : array_from_sparse(topic_model.predict_vp_topics(processed_body.lower()), 100)
+        },
+        "topicWholeFeatures" : {
+            "topics" : array_from_sparse(topic_model.predict_whole_topics(processed_body.lower()), 150)
+        }
+
     }
 
 
