@@ -78,4 +78,4 @@ def query_tag_statistic(tags):
 
 
 def handle_connection_error(err):
-    print("There was an error while communicating with the db. " + err)
+    print("There was an error while communicating with the db. " + err.message)

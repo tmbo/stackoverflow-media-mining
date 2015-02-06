@@ -20,7 +20,7 @@ def average_comment_length(comment_length, num_comments):
     return (comment_length / num_comments) if num_comments != 0 else 0
 
 
-def calc_comment_features(comments):
+def calculate_comment_features(comments):
     stats = dict()
 
     stats["num_comments"] = number_of_comments(comments)

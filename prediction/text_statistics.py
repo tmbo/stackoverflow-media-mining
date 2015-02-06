@@ -67,7 +67,7 @@ class TextStatistics(object):
             return 0
 
     def count_syllables(self, words):
-        return [self.syl_counter.SyllableCount(word) for word in words]
+        return [self.syl_counter.syllable_count(word) for word in words]
 
     def calculate_shallow_text_features(self):
         stats = {

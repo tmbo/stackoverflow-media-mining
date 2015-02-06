@@ -1,3 +1,4 @@
+import os
 import ConfigParser
 
 
@@ -9,10 +10,13 @@ class Database(object):
         self.database = config.get("DB", "database")
         self.db_type = config.get("DB", "typ")
 
+
     @staticmethod
     def from_config(file_name='../application.cfg'):
         config = ConfigParser.RawConfigParser()
-        config.read(file_name)
+        scriptDir = os.path.dirname(os.path.realpath(__file__))
+        configDir = os.path.join(scriptDir, file_name)
+        config.read(configDir)
         return Database(config)
 
     def connection(self):

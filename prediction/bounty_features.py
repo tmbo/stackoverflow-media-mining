@@ -38,7 +38,7 @@ def view_count(question):
     return question["view_count"]
 
 
-def calc_bounty_features(question):
+def calculate_bounty_features(question):
     stats = dict()
 
     stats["num_answers"] = number_of_answers(question)
