@@ -26,8 +26,8 @@ def calculate_comment_features(comments):
     stats["num_comments"] = number_of_comments(comments)
     stats["comment_len"] = length_of_comments(comments)
     stats["avg_comment_len"] = average_comment_length(stats["comment_len"], stats["num_comments"])
-    stats["log_num_comments"] = trunc_log10(stats["num_comments"])
-    stats["log_comment_len"] = trunc_log10(stats["comment_len"])
+    stats["log_num_comments"] = trunc_log2(stats["num_comments"])
+    stats["log_comment_len"] = trunc_log2(stats["comment_len"])
 
     return stats
 

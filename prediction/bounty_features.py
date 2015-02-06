@@ -1,5 +1,5 @@
 from time import time
-from utils import trunc_log10
+from utils import trunc_log2
 
 
 def log(stats):
@@ -43,7 +43,7 @@ def calculate_bounty_features(question):
 
     stats["num_answers"] = number_of_answers(question)
     stats["time_till_bounty_creation"] = time_since_creation(question)
-    stats["log_time_till_bounty_creation"] = trunc_log10(stats["time_till_bounty_creation"])
+    stats["log_time_till_bounty_creation"] = trunc_log2(stats["time_till_bounty_creation"])
     stats["num_old_bounties"] = number_of_old_bounties(question)
     stats["bounty_height"] = height_of_bounty(question)
     stats["question_score"] = score(question)

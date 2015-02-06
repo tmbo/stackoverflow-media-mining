@@ -41,8 +41,7 @@ def calculate_tag_features(tags):
     stats["num_pop_tags_100"] = number_of_popular_tags(tag_stats, 100)
     stats["tag_popularity"] = tag_popularity(tag_stats)
     stats["tag_specificity"] = tag_specificity(tags)
-    stats["log_tag_specificity"] = trunc_log10(stats["tag_specificity"])
-    stats["log_tag_popularity"] = trunc_log10(stats["tag_popularity"])
+    stats["log_tag_popularity"] = trunc_log2(stats["tag_popularity"])
     stats["log_tag_specificity"] = trunc_log10(stats["tag_specificity"])
 
     return stats
