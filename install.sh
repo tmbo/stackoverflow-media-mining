@@ -29,6 +29,9 @@ sudo zypper install python-scipy
 # LDA Topic models for python
 sudo easy_install gensim
 
+# Fast xml processing for python
+sudo easy_install lxml
+
 # SVMs for python
 sudo easy_install scikit-learn
 

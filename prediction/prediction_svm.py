@@ -66,7 +66,7 @@ def load_data_from_db():
     database = Database.from_config()
     con, cursor = database.cursor()
     cursor.execute(
-        "Select * From %s Where (AnswerDate is not null Or successful = 0) and num_answers_bounty = 0" % name_of_feature_table)
+        "Select * From %s Where AnswerDate is not null Or successful = 0" % name_of_feature_table)
     results = cursor.fetchall()
     con.close()
     return results
