@@ -86,9 +86,9 @@ def insert_into_tag_post_map(data, cursor, writer):
 
 def write_results_to_db():
     try:
-        writer = Database.from_config()
+        database = Database.from_config()
 
-        write_cursor = writer.cursor()
+        writer, write_cursor = database.cursor()
         tag_data = []
         for tag, count in tag_counter.iteritems():
             tag_data.append((tag_ids[tag], tag, count, 1.0 * count / num_questions))

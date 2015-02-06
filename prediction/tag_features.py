@@ -50,11 +50,11 @@ def calculate_tag_features(tags):
 
 def query_togetherness(tag_combo):
     try:
-        db = Database.from_config()
-        cursor = db.cursor(dictionary=True)
+        database = Database.from_config()
+        connection, cursor = database.cursor(dictionary=True)
         cursor.execute("SELECT togetherness FROM tag_combos WHERE tag1=%s AND tag2=%s", tag_combo)
         result = cursor.fetchone()
-        db.close()
+        connection.close()
         return result
     except Exception as err:
         handle_connection_error(err)
@@ -62,15 +62,15 @@ def query_togetherness(tag_combo):
 
 def query_tag_statistic(tags):
     try:
-        db = Database.from_config()
-        cursor = db.cursor(dictionary=True)
+        database = Database.from_config()
+        connection, cursor = database.cursor(dictionary=True)
         query = "SELECT * FROM tags WHERE "
         where_clause = " OR ".join(["Tag='%s'" % tag for tag in tags])
         query += where_clause
 
         cursor.execute(query)
         results = cursor.fetchall()
-        db.close()
+        connection.close()
         return results
 
     except Exception as err:

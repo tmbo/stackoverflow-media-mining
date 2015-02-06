@@ -8,7 +8,7 @@ import time
 from sklearn.metrics import roc_auc_score, precision_recall_fscore_support
 from sklearn.grid_search import GridSearchCV
 from database import Database
-from utils import array_from_sparse
+from utils import array_from_sparse, ensure_folder_exists
 
 name_of_feature_table = "training_features"
 
@@ -63,12 +63,12 @@ def calculate_y_label(duration_in_minutes):
 
 
 def load_data_from_db():
-    db = Database.from_config()
-    cursor = db.cursor()
+    database = Database.from_config()
+    con, cursor = database.cursor()
     cursor.execute(
         "Select * From %s Where (AnswerDate is not null Or successful = 0) and num_answers_bounty = 0" % name_of_feature_table)
     results = cursor.fetchall()
-    db.close()
+    con.close()
     return results
 
 
@@ -183,11 +183,13 @@ if __name__ == "__main__":
     print "Loading data from db ..."
 
     base_dir = "../output/svms"
+    
+    ensure_folder_exists(base_dir)
 
     data = load_data_from_db()
 
     success_svm, success_scaler = train_to_predict_success(data)
-    time_svm, time_scaler = train_to_predict_time(data)
+    time_svm, time_scaler = train_to_predict_time(filter(lambda x: x[1] == 1, data))
 
     store_trained_instance(success_svm, base_dir + "/success_svm.pkl")
     store_trained_instance(success_scaler, base_dir + "/success_scaler.pkl")

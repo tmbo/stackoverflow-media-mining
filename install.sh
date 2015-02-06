@@ -36,3 +36,27 @@ sudo easy_install scikit-learn
 sudo easy_install flask
 
 sudo easy_install requests
+
+echo "Next steps to do MANUALLY:"
+echo "Download SAP HANA driver from"
+echo "https://downloads.sdn.sap.com/hana/hana10/sap_hana_client_linux64.tgz"
+echo "Follow instructions on how to setup python with HANA http://scn.sap.com/community/developer-center/hana/blog/2014/05/02/connect-to-sap-hana-in-python"
+
+read -p "Are you finished? (Y|y)" -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  # Installation of sbt for scala
+  wget https://repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.7/sbt-launch.jar -P sbt/
+  cd sbt
+  printf '
+  SBT_OPTS="-Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M"
+  java $SBT_OPTS -jar `dirname $0`/sbt-launch.jar "$@"\n' >> sbt
+  chmod +x sbt
+  cd ..
+else
+  echo "Aborting"
+  exit 1
+
+
+
