@@ -28,7 +28,7 @@ class xml2sql:
         self.num_insert = 0
 
         # open the xml file for iteration
-        self.context = et.iterparse(input_file)
+        self.context = et.iterparse(input_file, events=("start", "end"))
 
         # output file handle
         try:
@@ -60,10 +60,10 @@ class xml2sql:
             }
         """
 
-        # self.context = iter(self.context)
+        self.context = iter(self.context)
 
         # get to the root
-        self.context.next()
+        event, root = self.context.next()
 
         fields = input_fields
 
@@ -75,14 +75,14 @@ class xml2sql:
 
 
         # iterate through the xml
-        for _, elem in self.context:
+        for event, elem in self.context:
             # if elem is an unignored child node of the record tag, it should be written to buffer
             # should_write = elem.tag not in ignore
             if fields is None:
                 fields = list(elem.attrib.keys())
             if self.sql_insert is None:
                 self.sql_insert = 'INSERT INTO ' + table + ' (' + ','.join(fields) + ')\n'
-            if elem.tag == tag:
+            if event == "end" and elem.tag == tag:
                 row = map(lambda fname: self._as_csv(elem.attrib.get(fname, None)), fields)
 
                 sql = r'(' + r', '.join(row) + r')'
@@ -106,11 +106,7 @@ class xml2sql:
                 # It's safe to call clear() here because no descendants will be
                 # accessed
                 elem.clear()
-                # Also eliminate now-empty references from the root node to elem
-                for ancestor in elem.xpath('ancestor-or-self::*'):
-                    while ancestor.getprevious() is not None:
-                        del ancestor.getparent()[0]
-                
+                root.clear()
 
         self._write_buffer()  # write rest of the buffer to file
 
