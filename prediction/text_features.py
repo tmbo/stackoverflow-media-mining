@@ -8,25 +8,25 @@ IMG_RE = re.compile(r'<img (.*?)/?>', re.DOTALL)
 SELF_RE = re.compile(r'I(?=\')|I(?=\s)|we(?=\s)|me(?=\s)|myself(?=\s)|our(?=\s)', re.IGNORECASE)
 VERBS_RE = re.compile(r'run(?=\s)|tried(?=\s)|did(?=\s)|made(?=\s)|used(?=\s)|tested(?=\s)')
 
+# Differentite between small inline code examples and long blocks of code
 CODE_SAMPLE_THRESHOLD = 10
 
 
-def contains_code_sample(text):
-    return number_of_code_snippets(text) > 0
-
-
 def number_of_code_snippets(text):
+    # How many code snippets does the post contain.
     snippets = CODE_RE.findall(text)
     # exclude tiny inline code snippets
     return len(filter(lambda x: len(x) >= CODE_SAMPLE_THRESHOLD, snippets))
 
 
 def number_of_images(text):
+    # How many images does the post contain.
     snippets = IMG_RE.findall(text)
     return len(snippets)
 
 
 def length_of_code_snippets(text):
+    # Overall length of all code snippets combined
     snippets = CODE_RE.findall(text)
     # exclude tiny inline code snippets
     return reduce(lambda summed, x: summed + len(x), snippets, 0)
@@ -37,19 +37,25 @@ def text_length(text):
 
 
 def ends_with_question_mark(text):
-    return text[-1] == "?"
+    # Does the title end with a question mark?
+    # return an Int instead of Bool; SVM only understands numbers
+    return int(text[-1] == "?")
 
 
 def starts_with_question_word(text):
     # String starts with question words like "What", "Why", "Who", "How" ...
-    return text[:2].lower() == "wh" or text[:3].lower() == "how"
+    # return an Int instead of Bool; SVM only understands numbers
+    condition = text[:2].lower() == "wh" or text[:3].lower() == "how"
+    return int(condition)
 
 
 def number_of_self_ref(text):
+    # Number of self reference like "I", "myself", "we", "our"...
     return len(SELF_RE.findall(text))
 
 
 def number_of_action_verbs(text):
+    # Number of action verbs like "tried", "run", "did", "made"...
     return len(VERBS_RE.findall(text))
 
 
@@ -89,62 +95,9 @@ def calculate_text_features(postId, body, title):
     stats["begin_que_word"] = starts_with_question_word(title)
 
     stats["log_body_len"] = trunc_log2(stats["body_len"])
+    stats["log_code_len"] = trunc_log2(stats["code_len"])
     stats["log_code_snippets"] = trunc_log2(stats["num_code_snippet"])
     stats["log_selfref"] = trunc_log2(stats["num_selfref"])
     stats["log_active_verb"] = trunc_log2(stats["num_active_verb"])
     #stats["log_code_len"] = trunc_log2(stats["code_len"])
     return stats
-
-
-def update_db(stats, cursor, cnx):
-    cursor.execute("""
-UPDATE bounty_text
-SET
-  num_code_snippet=%s,
-  num_images=%s,
-  code_len=%s,
-  body_len=%s,
-  title_len=%s,
-  end_que_mark=%s,
-  begin_que_word=%s,
-  num_selfref=%s,
-  num_active_verb=%s
-WHERE PostId=%s
-  """, (stats["num_code_snippet"], stats["num_images"], stats["code_len"], stats["body_len"], stats["title_len"],
-        stats["end_que_mark"], stats["begin_que_word"], stats["num_selfref"], stats["num_active_verb"],
-        stats["postId"]))
-    cnx.commit()
-
-
-# ========= Main Entry Point ============
-#
-# Only run this Script manually when trying to batch calculate features from DB
-#
-if __name__ == "__main__":
-
-    try:
-        database = Database.from_config()
-
-        print "Starting number crunching\n"
-
-        cnx, cursor = database.cursor()
-        cursor.execute("Select * FROM bounty_text")
-        rows = cursor.fetchall()
-
-        for row in rows:
-            # Python uses ASCII by default?
-            body = row[2].encode("utf-8")
-            postId = row[1]
-            title = row[4]
-
-            stats = calculate_text_features(postId, body, title)
-
-            update_db(stats, cursor, cnx)
-            log(stats)
-
-        print "Done"
-
-    except Exception as err:
-        print("There was an error while communicating with the db. " + err)
-    else:
-        cnx.close()

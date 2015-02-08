@@ -23,7 +23,7 @@ sudo zypper install python-numpy
 sudo zypper install p7zip
 
 # Helper to run SVM training in reasonable amount of time
-# On the crawler server that resulted in problems when installing 
+# On the crawler server that resulted in problems when installing
 # `numpy`, therfore install lapack after `numpy`
 sudo zypper install liblapack3
 
@@ -39,6 +39,7 @@ sudo easy_install scikit-learn
 sudo easy_install flask
 
 sudo easy_install requests
+sudo easy_install ordereddict
 
 echo "Next steps to do MANUALLY:"
 echo "Download SAP HANA driver from"

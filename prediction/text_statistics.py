@@ -85,7 +85,6 @@ class TextStatistics(object):
         stats["log_coleman_liau_index"] = trunc_log2(stats["coleman_liau_index"])
         stats["log_flesch_reading_ease"] = trunc_log2(stats["flesch_reading_ease"])
         stats["log_gunning_fog_index"] = trunc_log2(stats["gunning_fog_index"])
-        stats["log_avg_chars"] = trunc_log2(stats["avg_chars"])
         stats["log_avg_words"] = trunc_log2(stats["avg_words"])
 
         return stats

@@ -106,12 +106,13 @@ def calculate_features(question, comments):
 def get_prediction(features):
 
     i = 0
-    values = [0.0]*308
     for category, feature in features.items():
-        for key, value in feature.items():
-            print value
+        for value in feature.values():
+            if isinstance(value, list):
+                values.extend(value) # arrays
+            else:
+                values.append(value) # single Integers, Floats
             i+= 1
-    print "Number of Features ", i
 
     X_success = success_scaler.transform(values)
     X_time = time_scaler.transform(values)
