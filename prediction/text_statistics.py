@@ -1,6 +1,8 @@
 import nltk
 from syllablecounter import CMUSyllables
 from utils import *
+from ordereddict import OrderedDict
+
 
 _syl_counter = CMUSyllables()
 
@@ -70,20 +72,20 @@ class TextStatistics(object):
         return [self.syl_counter.syllable_count(word) for word in words]
 
     def calculate_shallow_text_features(self):
-        stats = {
-            "avg_chars": self.avg_chars(),
-            "avg_words": self.avg_words(),
-            "automated_readability_index": self.automated_readability_index(),
-            "coleman_liau_index": self.coleman_liau_index(),
-            "flesch_reading_ease": self.flesch_reading_ease(),
-            "gunning_fog_index": self.gunning_fog_index(),
-        }
+        stats = OrderedDict()
 
-        stats["log_avg_chars"] = trunc_log2(stats["avg_chars"])
-        stats["log_avg_words"] = trunc_log2(stats["avg_words"])
+        stats["automated_readability_index"] = self.automated_readability_index()
+        stats["coleman_liau_index"] = self.coleman_liau_index()
+        stats["flesch_reading_ease"] = self.flesch_reading_ease()
+        stats["gunning_fog_index"] = self.gunning_fog_index()
+        stats["avg_chars"] = self.avg_chars()
+        stats["avg_words"] = self.avg_words()
+
         stats["log_automated_readability_index"] = trunc_log2(stats["automated_readability_index"])
         stats["log_coleman_liau_index"] = trunc_log2(stats["coleman_liau_index"])
         stats["log_flesch_reading_ease"] = trunc_log2(stats["flesch_reading_ease"])
         stats["log_gunning_fog_index"] = trunc_log2(stats["gunning_fog_index"])
+        stats["log_avg_chars"] = trunc_log2(stats["avg_chars"])
+        stats["log_avg_words"] = trunc_log2(stats["avg_words"])
 
         return stats

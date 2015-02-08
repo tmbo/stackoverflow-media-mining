@@ -1,4 +1,5 @@
 import itertools
+from ordereddict import OrderedDict
 from database import Database
 from utils import *
 
@@ -34,16 +35,27 @@ def tag_specificity(tags):
 def calculate_tag_features(tags):
     tag_stats = query_tag_statistic(tags)
 
-    stats = dict()
+    stats = OrderedDict()
 
+    stats["tag_popularity"] = tag_popularity(tag_stats)
+    stats["tag_specificity"] = tag_specificity(tags)
     stats["num_pop_tags_25"] = number_of_popular_tags(tag_stats, 25)
     stats["num_pop_tags_50"] = number_of_popular_tags(tag_stats, 50)
     stats["num_pop_tags_100"] = number_of_popular_tags(tag_stats, 100)
-    stats["tag_popularity"] = tag_popularity(tag_stats)
-    stats["tag_specificity"] = tag_specificity(tags)
+
+    stats["num_subs_ans"] = 0
+    stats["percent_subs_ans"] = 0
+    stats["num_subs_t"] = 0
+    stats["percent_subs_t"] = 0
+
+    stats["log_min_tags_subs"] = 0
+    stats["log_max_tags_subs"] = 0
     stats["log_tag_popularity"] = trunc_log2(stats["tag_popularity"])
     stats["log_tag_specificity"] = trunc_log10(stats["tag_specificity"])
-
+    stats["log_num_subs_ans"] = trunc_log2(stats["num_subs_ans"])
+    stats["log_percent_subs_ans"] = trunc_log2(stats["percent_subs_ans"])
+    stats["log_num_subs_t"] = trunc_log2(stats["num_subs_t"])
+    stats["log_percent_subs_t"] = trunc_log2(stats["percent_subs_t"])
     return stats
 
 

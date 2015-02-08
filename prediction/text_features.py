@@ -1,3 +1,4 @@
+from ordereddict import OrderedDict
 from database import Database
 from utils import *
 import re
@@ -67,14 +68,12 @@ def log(stats):
 
 
 def calculate_text_features(postId, body, title):
-    stats = dict()
+    stats = OrderedDict()
 
     # calculate all code-based features with HTML tags still intact
     stats["num_code_snippet"] = number_of_code_snippets(body)
-    stats["code_len"] = length_of_code_snippets(body)
     stats["num_images"] = number_of_images(body)
-    stats["log_code_snippet"] = trunc_log2(stats["num_code_snippet"])
-    stats["log_code_len"] = trunc_log2(stats["code_len"])
+    stats["code_len"] = length_of_code_snippets(body)
 
     # remove all outer HTML tags
     body = remove_tags(remove_code(body))
@@ -83,15 +82,17 @@ def calculate_text_features(postId, body, title):
     stats["body_len"] = text_length(body)
     stats["num_selfref"] = number_of_self_ref(body)
     stats["num_active_verb"] = number_of_action_verbs(body)
-    stats["log_body_len"] = trunc_log2(stats["body_len"])
-    stats["log_selfref"] = trunc_log2(stats["num_selfref"])
-    stats["log_active_verb"] = trunc_log2(stats["num_active_verb"])
 
     # title features
     stats["title_len"] = text_length(title)
     stats["end_que_mark"] = ends_with_question_mark(title)
     stats["begin_que_word"] = starts_with_question_word(title)
 
+    stats["log_body_len"] = trunc_log2(stats["body_len"])
+    stats["log_code_snippets"] = trunc_log2(stats["num_code_snippet"])
+    stats["log_selfref"] = trunc_log2(stats["num_selfref"])
+    stats["log_active_verb"] = trunc_log2(stats["num_active_verb"])
+    #stats["log_code_len"] = trunc_log2(stats["code_len"])
     return stats
 
 

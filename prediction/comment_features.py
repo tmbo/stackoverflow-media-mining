@@ -1,4 +1,5 @@
 from utils import *
+from ordereddict import OrderedDict
 
 
 def log(stats):
@@ -21,11 +22,12 @@ def average_comment_length(comment_length, num_comments):
 
 
 def calculate_comment_features(comments):
-    stats = dict()
+    stats = OrderedDict()
 
     stats["num_comments"] = number_of_comments(comments)
     stats["comment_len"] = length_of_comments(comments)
     stats["avg_comment_len"] = average_comment_length(stats["comment_len"], stats["num_comments"])
+
     stats["log_num_comments"] = trunc_log2(stats["num_comments"])
     stats["log_comment_len"] = trunc_log2(stats["comment_len"])
 

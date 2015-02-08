@@ -1,10 +1,9 @@
 # System imports
-import sys, os
-import re
-import random
+import sys, os, re, requests
 from flask import *
 from flask.json import jsonify
-import requests
+from ordereddict import OrderedDict
+
 
 # Local predicition modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'prediction')) #find modules in parent_folder/predictions
@@ -19,9 +18,7 @@ from utils import *
 
 app = Flask(__name__)
 RE_QUESTIONID = re.compile("(\d+)")
-topic_model = TopicModel()
 
-prediction_dict = dict()
 
 # ----- Routes ----------
 
@@ -90,25 +87,31 @@ def query_stackoverflow(question_id):
 def calculate_features(question, comments):
     processed_body = remove_tags(remove_code(question["body"]))
 
-    return {
-        "textFeatures": text_features.calculate_text_features(question["question_id"], question["body"], question["title"]),
-        "tagFeatures": tag_features.calculate_tag_features(question["tags"]),
-        "commentFeatures": comment_features.calculate_comment_features(comments),
-        "shallowLinguisticFeatures": TextStatistics(processed_body).calculate_shallow_text_features(),
-        "bountyFeatures": bounty_features.calculate_bounty_features(question),
-        "topicVPFeatures" : {
-            "topics" : array_from_sparse(topic_model.predict_vp_topics(processed_body.lower()), 100)
-        },
-        "topicWholeFeatures" : {
-            "topics" : array_from_sparse(topic_model.predict_whole_topics(processed_body.lower()), 150)
-        }
-
+    features = OrderedDict()
+    features["textFeatures"] = text_features.calculate_text_features(question["question_id"], question["body"], question["title"])
+    features["tagFeatures"] = tag_features.calculate_tag_features(question["tags"])
+    features["bountyFeatures"] = bounty_features.calculate_bounty_features(question)
+    features["commentFeatures"] = comment_features.calculate_comment_features(comments)
+    features["shallowLinguisticFeatures"] = TextStatistics(processed_body).calculate_shallow_text_features()
+    features["topicWholeFeatures"] = {
+        "topics" : array_from_sparse(topic_model.predict_whole_topics(processed_body.lower()), 150)
+    }
+    features["topicVPFeatures"] = {
+        "topics" : array_from_sparse(topic_model.predict_vp_topics(processed_body.lower()), 100)
     }
 
+    return features
 
-def get_prediction(question_id):
 
+def get_prediction(features):
+
+    i = 0
     values = [0.0]*308
+    for category, feature in features.items():
+        for key, value in feature.items():
+            print value
+            i+= 1
+    print "Number of Features ", i
 
     X_success = success_scaler.transform(values)
     X_time = time_scaler.transform(values)
@@ -125,6 +128,9 @@ if __name__ == "__main__":
         DEBUG=True,
         SECRET_KEY="asassdfs"
     )
+
+    # Load LDA Topic Model from Disk and train chunker
+    topic_model = TopicModel()
 
     # Load the trained SVM from disk
     svm_dir = os.path.dirname(os.path.realpath(__file__))
