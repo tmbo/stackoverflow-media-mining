@@ -1,6 +1,9 @@
 # Stackoverflow bounty analysis
-In this project we aim to analyse the influence of a bounty on a question. We
-will try to predict the time a question will get an answer after a bounty is set based on a preselected set of features.
+In this project we aim to analyse the influence of a bounty on a question. We will try to predict whether a question will receive a successful answer if setting a bounty for it. Additionally we predict if this bounty question will receive its winning answer with 2.5 days.
+
+The project contains two parts:
+1. A number of scripts to calculated features and train an SVM, which will serve as the knowledge base for the web server.
+2. A Web Server to enter questions and receive a prediction as output.
 
 ## The Web Server
 The project comes with a web server to enter questions and present the prediction results. The server can be used as is to show a simple HTML report or serves all its data via a REST interface.

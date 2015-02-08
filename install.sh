@@ -40,6 +40,7 @@ sudo easy_install flask
 
 sudo easy_install requests
 sudo easy_install ordereddict
+sudo easy_install flask-cors
 
 echo "Next steps to do MANUALLY:"
 echo "Download SAP HANA driver from"
