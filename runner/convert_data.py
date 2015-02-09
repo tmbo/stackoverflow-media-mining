@@ -45,7 +45,7 @@ def import_files_into_db():
     cursor.close()
     print "Finished creating stackoverflow tables..."
 
-    for sql_file in glob.glob('%s/*.sql' % OUT_DIR):
+    for sql_file in glob.glob('%s/*.sqlx' % OUT_DIR):
         print "Running SQL script %s ..." % sql_file
         cursor = connection.cursor()
         execute_sql_from_large_file(sql_file, cursor)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     ensure_folder_exists(OUT_DIR)
     cfg = from_config()
     pool = Pool()
-    pool.map(convert_file, enumerate(cfg.sections()))
+    #pool.map(convert_file, enumerate(cfg.sections()))
     pool.terminate()
 
     import_files_into_db()
