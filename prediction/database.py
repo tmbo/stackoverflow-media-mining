@@ -29,7 +29,7 @@ class Database(object):
         elif self.db_type == "hana":
             import dbapi
             return dbapi.connect(address=self.host,
-                                 port=self.port,
+                                 port=int(self.port),
                                  user=self.user,
                                  password=self.password)
         else:
