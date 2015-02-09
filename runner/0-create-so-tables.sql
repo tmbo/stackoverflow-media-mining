@@ -17,18 +17,18 @@ CREATE TABLE SO_USERS (
   PRIMARY KEY (Id)
 );
 
--- CREATE TABLE SO_VOTES (
---   Id           INT NOT NULL,
---   PostId       INT NOT NULL,
---   VoteTypeId   SMALLINT DEFAULT NULL,
---   UserId       INT      DEFAULT NULL,
---   CreationDate DATETIME DEFAULT NULL,
---   BountyAmount INT      DEFAULT NULL,
---   PRIMARY KEY (Id)
--- );
---
--- CREATE INDEX votes_1 ON SO_VOTES (PostId);
---
+CREATE TABLE SO_VOTES (
+  Id           INT NOT NULL,
+  PostId       INT NOT NULL,
+  VoteTypeId   SMALLINT DEFAULT NULL,
+  UserId       INT      DEFAULT NULL,
+  CreationDate DATETIME DEFAULT NULL,
+  BountyAmount INT      DEFAULT NULL,
+  PRIMARY KEY (Id)
+);
+
+CREATE INDEX votes_1 ON SO_VOTES (PostId);
+
 -- CREATE TABLE SO_POSTS (
 --   Id               INT NOT NULL,
 --   PostTypeId       SMALLINT DEFAULT NULL,
