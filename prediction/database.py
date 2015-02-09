@@ -6,7 +6,7 @@ class Database(object):
     def __init__(self, config):
         self.user = config.get("DB", "user")
         self.password = config.get("DB", "password")
-        self.password = config.get("DB", "password")
+        self.port = config.get("DB", "port")
         self.host = config.get("DB", "host")
         self.database = config.get("DB", "database")
         self.db_type = config.get("DB", "typ")
