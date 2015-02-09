@@ -34,15 +34,15 @@ class xml2sql:
         if is_timestamp:
             try:
                 time = parse(v)
-                return "'%s'" % time.strftime("%Y-%m-%d %H:%M:%S.%f0")
+                return time.strftime("%Y-%m-%d %H:%M:%S.%f0")
             except ValueError:
-                return "NULL"
+                return None
         else:
-            return "'" + v.replace('\n', r'\n').replace("'", r"''") + "'"
+            return v.replace('\n', r'\n').replace("'", r"''")
     
     def _as_csv(self, value, is_timestamp):
         if value is None:
-            return "NULL"
+            return None
         else:
             return self._escape_csv_value(value, is_timestamp)
 

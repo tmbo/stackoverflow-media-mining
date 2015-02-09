@@ -32,6 +32,8 @@ sudo zypper install python-scipy
 # LDA Topic models for python
 sudo easy_install gensim
 
+sudo easy_install python-dateutil
+
 # SVMs for python
 sudo easy_install scikit-learn
 
