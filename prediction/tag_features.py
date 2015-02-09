@@ -40,13 +40,13 @@ def percentage_subscribers(active_subscribers, all_subscribers):
 
 
 def min_subscribers(all_subscribers):
-    print all_subscribers
-    return 0
+    min_subscriber = min(all_subscribers, key=lambda x: x["NumberOfUsers"])
+    return min_subscriber["NumberOfUsers"]
 
 
 def max_subscribers(all_subscribers):
-    print all_subscribers
-    return 0
+    max_subscriber = max(all_subscribers, key=lambda x: x["NumberOfUsers"])
+    return max_subscriber["NumberOfUsers"]
 
 
 def tag_specificity(tags):
@@ -62,7 +62,7 @@ def tag_specificity(tags):
 
 def calculate_tag_features(tags):
     tag_stats = query_tag_statistic("tags", tags)
-    tag_resposinsive_subscribers = query_tag_statistic("subscribers_responsive", tags)
+    tag_responsive_subscribers = query_tag_statistic("subscribers_responsive", tags)
     tag_active_subscribers = query_tag_statistic("subscribers_active", tags)
     tag_all_subscribers = query_tag_statistic("subscribers_all", tags)
 
@@ -76,8 +76,8 @@ def calculate_tag_features(tags):
 
     stats["num_subs_ans"] = num_subscribers(tag_active_subscribers)
     stats["percent_subs_ans"] = percentage_subscribers(tag_active_subscribers, tag_all_subscribers)
-    stats["num_subs_t"] = num_subscribers(tag_resposinsive_subscribers)
-    stats["percent_subs_t"] = percentage_subscribers(tag_resposinsive_subscribers, tag_all_subscribers)
+    stats["num_subs_t"] = num_subscribers(tag_responsive_subscribers)
+    stats["percent_subs_t"] = percentage_subscribers(tag_responsive_subscribers, tag_all_subscribers)
 
     stats["log_min_tags_subs"] = trunc_log2(min_subscribers(tag_all_subscribers))
     stats["log_max_tags_subs"] = trunc_log2(max_subscribers(tag_all_subscribers))
