@@ -33,9 +33,11 @@ def import_xml_into_db(data):
     converter = xml2sql(input_file)
     table = cfg.get(so_input, "table")
     fields = cfg.get(so_input, "columns").split(" ")
+    timestamps = set(cfg.get(so_input, "timestamps").split(" "))
     result = converter.convert(
         tag="row",
-        input_fields=fields)
+        input_fields=fields,
+        timestamps=timestamps)
     
     for batch in result:    
         sql_insert = 'INSERT INTO %s (%s) VALUES (%s)' % (table, ','.join(fields), ', '.join(['?']*len(fields)))

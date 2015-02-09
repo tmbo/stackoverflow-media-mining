@@ -9,6 +9,7 @@
 
 import codecs
 import xml.etree.ElementTree as et
+from dateutil.parser import parse
 
 
 class xml2sql:
@@ -29,16 +30,23 @@ class xml2sql:
         # open the xml file for iteration
         self.context = et.iterparse(input_file, events=("start", "end"))
 
-    def _escape_csv_value(self, v):
-        return "'" + v.replace('\n', r'\n').replace("'", r"''") + "'"
+    def _escape_csv_value(self, v, is_timestamp):
+        if is_timestamp:
+            try:
+                time = parse(v)
+                return "'%s'" % time.strftime("%Y-%m-%d %H:%M:%S.%f0")
+            except ValueError:
+                return "NULL"
+        else:
+            return "'" + v.replace('\n', r'\n').replace("'", r"''") + "'"
     
-    def _as_csv(self, value):
+    def _as_csv(self, value, is_timestamp):
         if value is None:
             return "NULL"
         else:
-            return self._escape_csv_value(value)
+            return self._escape_csv_value(value, is_timestamp)
 
-    def convert(self, tag="item", input_fields=None, limit=-1, packet=8):
+    def convert(self, tag="item", input_fields=None, timestamps=set(), limit=-1, packet=8):
         """Convert the XML file to SQL file
              Keyword arguments:
             tag -- the record tag. eg: item
@@ -70,7 +78,7 @@ class xml2sql:
             # if elem is an unignored child node of the record tag, it should be written to buffer
             # should_write = elem.tag not in ignore
             if event == "end" and elem.tag == tag:
-                row = map(lambda fname: self._as_csv(elem.attrib.get(fname, None)), fields)
+                row = map(lambda fname: self._as_csv(elem.attrib.get(fname, None), fname in timestamps), fields)
 
                 sql_len += len(row)
 
