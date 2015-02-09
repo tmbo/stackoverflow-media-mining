@@ -59,5 +59,5 @@ if __name__ == '__main__':
     database = Database.from_config()
     create_db_tables()
     pool = Pool()
-    map(import_xml_into_db, enumerate(cfg.sections()))
+    pool.map(import_xml_into_db, enumerate(cfg.sections()))
     pool.terminate()
