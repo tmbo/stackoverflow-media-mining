@@ -24,40 +24,39 @@ def from_config(file_name='stackoverflow_data.cfg'):
     return config
 
 
-def convert_file(data):
+def import_xml_into_db(data):
     idx, so_input = data
-    print "Converting %s..." % cfg.get(so_input, "input")
+    connection, cursor = database.cursor()
+    print "Reading %s..." % cfg.get(so_input, "input")
     
     input_file = "%s/%s" % (SO_DATA, cfg.get(so_input, "input"))
-    output_file = "%s/%s-%s.sql" % (OUT_DIR, idx+1, so_input)
-    converter = xml2sql(input_file, output_file)
-    converter.convert(
+    converter = xml2sql(input_file)
+    table = cfg.get(so_input, "table")
+    fields = cfg.get(so_input, "columns").split(" ")
+    result = converter.convert(
         tag="row",
-        table=cfg.get(so_input, "table"),
-        input_fields=cfg.get(so_input, "columns").split(" "))
+        table=table,
+        input_fields=fields)
+    
+    for batch in result:    
+        sql_insert = 'INSERT INTO %s (%s) VALUES (%s)' % (table, ','.join(fields), ', '.join(['?']*len(fields)))
+        cursor.executemany(sql_insert, batch)
+    
+    connection.close()    
 
 
-def import_files_into_db():
-    database = Database.from_config()
+def create_db_tables():
     connection, cursor = database.cursor()
     print "Creating stackoverflow tables..."
     execute_sql_from_file("runner/0-create-so-tables.sql", cursor)
     cursor.close()
-    print "Finished creating stackoverflow tables..."
-
-    for sql_file in glob.glob('%s/*.sqlx' % OUT_DIR):
-        print "Running SQL script %s ..." % sql_file
-        cursor = connection.cursor()
-        execute_sql_from_large_file(sql_file, cursor)
-        cursor.close()
     connection.close()
-    
 
 if __name__ == '__main__':
     ensure_folder_exists(OUT_DIR)
     cfg = from_config()
+    database = Database.from_config()
+    create_db_tables()
     pool = Pool()
-    # pool.map(convert_file, enumerate(cfg.sections()))
+    pool.map(import_xml_into_db, enumerate(cfg.sections()))
     pool.terminate()
-
-    import_files_into_db()

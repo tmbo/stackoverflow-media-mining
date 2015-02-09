@@ -13,7 +13,7 @@ import xml.etree.ElementTree as et
 
 class xml2sql:
     
-    def __init__(self, input_file, output_file, encoding='utf-8'):
+    def __init__(self, input_file):
         """Initialize the class with the paths to the input xml file
         and the output sql file
         Keyword arguments:
@@ -23,19 +23,11 @@ class xml2sql:
         """
 
         self.output_buffer = []
-        self.sql_insert = None
         self.output = None
         self.num_insert = 0
 
         # open the xml file for iteration
         self.context = et.iterparse(input_file, events=("start", "end"))
-
-        # output file handle
-        try:
-            self.output = codecs.open(output_file, "w", encoding=encoding)
-        except:
-            print("Failed to open the output file")
-            raise
 
     def _escape_csv_value(self, v):
         return "'" + v.replace('\n', r'\n').replace("'", r"''") + "'"
@@ -46,7 +38,7 @@ class xml2sql:
         else:
             return self._escape_csv_value(value)
 
-    def convert(self, tag="item", table="table", input_fields=None, limit=-1, packet=8):
+    def convert(self, tag="item", input_fields=None, limit=-1, packet=8):
         """Convert the XML file to SQL file
              Keyword arguments:
             tag -- the record tag. eg: item
@@ -78,10 +70,6 @@ class xml2sql:
         for event, elem in self.context:
             # if elem is an unignored child node of the record tag, it should be written to buffer
             # should_write = elem.tag not in ignore
-            if fields is None:
-                fields = list(elem.attrib.keys())
-            if self.sql_insert is None:
-                self.sql_insert = 'INSERT INTO ' + table + ' (' + ','.join(fields) + ') '
             if event == "end" and elem.tag == tag:
                 row = map(lambda fname: self._as_csv(elem.attrib.get(fname, None)), fields)
 
@@ -93,7 +81,10 @@ class xml2sql:
                     self.output_buffer.append(sql)
                 else:
                     # packet size exceeded. flush the sql and start a new insert query
-                    self._write_buffer()
+                    yield self.output_buffer
+                    self.output_buffer = []
+                    self.num_insert += 1
+                    
                     self.output_buffer.append(sql)
                     sql_len = 0
 
@@ -109,13 +100,3 @@ class xml2sql:
                 root.clear()
 
         self._write_buffer()  # write rest of the buffer to file
-
-        return {"num": n, "num_insert": self.num_insert}
-
-    def _write_buffer(self):
-        """Write records from buffer to the output file"""
-
-        self.output.write(self.sql_insert + 'VALUES ' + ', '.join(self.output_buffer) + ';\n\n')
-        self.output.flush()
-        self.output_buffer = []
-        self.num_insert += 1
