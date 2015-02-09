@@ -39,10 +39,10 @@ def convert_file(data):
 
 def import_files_into_db():
     database = Database.from_config()
-    connection, cursor  = database.cursor()
+    connection, cursor = database.cursor()
     print "Creating stackoverflow tables..."
     execute_sql_from_file("runner/0-create-so-tables.sql", cursor)
-    connection.close()
+    cursor.close()
     print "Finished creating stackoverflow tables..."
 
     for sql_file in glob.glob('%s/*.sql' % OUT_DIR):
@@ -50,6 +50,7 @@ def import_files_into_db():
         cursor = connection.cursor()
         execute_sql_from_large_file(sql_file, cursor)
         cursor.close()
+    connection.close()
     
 
 if __name__ == '__main__':
