@@ -35,7 +35,6 @@ def import_xml_into_db(data):
     fields = cfg.get(so_input, "columns").split(" ")
     result = converter.convert(
         tag="row",
-        table=table,
         input_fields=fields)
     
     for batch in result:    
