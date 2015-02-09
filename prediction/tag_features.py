@@ -1,3 +1,4 @@
+from __future__ import division
 import itertools
 from ordereddict import OrderedDict
 from database import Database
@@ -21,6 +22,33 @@ def tag_popularity(tag_stats):
     return reduce(lambda summed, x: summed + x["Freq"], tag_stats, 0) / len(tag_stats)
 
 
+def num_subscribers(tag_subscribers):
+    return reduce(lambda summed, x: summed + x["NumberOfUsers"], tag_subscribers, 0) / len(tag_subscribers)
+
+
+def percentage_subscribers(active_subscribers, all_subscribers):
+    sum = 0
+    for i in range(0, len(active_subscribers)):
+        print active_subscribers[i]["Tag"]
+        print all_subscribers[i]["Tag"]
+        sum += active_subscribers[i]["NumberOfUsers"] / all_subscribers[i]["NumberOfUsers"]
+
+    return sum / len(active_subscribers)
+    # sum_all_subscribers = num_subscribers(all_subscribers)
+    # print sum_all_subscribers
+    # return active_subscribers / sum_all_subscribers
+
+
+def min_subscribers(all_subscribers):
+    print all_subscribers
+    return 0
+
+
+def max_subscribers(all_subscribers):
+    print all_subscribers
+    return 0
+
+
 def tag_specificity(tags):
     # create the pair-wise combinations all tags and query DB for togetherness value
     if tags > 1:
@@ -33,7 +61,10 @@ def tag_specificity(tags):
 
 
 def calculate_tag_features(tags):
-    tag_stats = query_tag_statistic(tags)
+    tag_stats = query_tag_statistic("tags", tags)
+    tag_resposinsive_subscribers = query_tag_statistic("subscribers_responsive", tags)
+    tag_active_subscribers = query_tag_statistic("subscribers_active", tags)
+    tag_all_subscribers = query_tag_statistic("subscribers_all", tags)
 
     stats = OrderedDict()
 
@@ -43,13 +74,13 @@ def calculate_tag_features(tags):
     stats["num_pop_tags_50"] = number_of_popular_tags(tag_stats, 50)
     stats["num_pop_tags_100"] = number_of_popular_tags(tag_stats, 100)
 
-    stats["num_subs_ans"] = 0
-    stats["percent_subs_ans"] = 0
-    stats["num_subs_t"] = 0
-    stats["percent_subs_t"] = 0
+    stats["num_subs_ans"] = num_subscribers(tag_active_subscribers)
+    stats["percent_subs_ans"] = percentage_subscribers(tag_active_subscribers, tag_all_subscribers)
+    stats["num_subs_t"] = num_subscribers(tag_resposinsive_subscribers)
+    stats["percent_subs_t"] = percentage_subscribers(tag_resposinsive_subscribers, tag_all_subscribers)
 
-    stats["log_min_tags_subs"] = 0
-    stats["log_max_tags_subs"] = 0
+    stats["log_min_tags_subs"] = trunc_log2(min_subscribers(tag_all_subscribers))
+    stats["log_max_tags_subs"] = trunc_log2(max_subscribers(tag_all_subscribers))
     stats["log_tag_popularity"] = trunc_log2(stats["tag_popularity"])
     stats["log_tag_specificity"] = trunc_log10(stats["tag_specificity"])
     stats["log_num_subs_ans"] = trunc_log2(stats["num_subs_ans"])
@@ -71,11 +102,11 @@ def query_togetherness(tag_combo):
         handle_connection_error(err)
 
 
-def query_tag_statistic(tags):
+def query_tag_statistic(table, tags):
     try:
         database = Database.from_config()
         connection, cursor = database.cursor(dictionary=True)
-        query = "SELECT * FROM tags WHERE "
+        query = "SELECT * FROM %s WHERE " %table
         where_clause = " OR ".join(["Tag='%s'" % tag for tag in tags])
         query += where_clause
 
