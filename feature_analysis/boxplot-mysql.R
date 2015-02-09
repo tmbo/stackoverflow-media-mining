@@ -8,7 +8,7 @@ con <- dbConnect(MySQL(), user = 'root', host = '127.0.0.1', dbname='stackoverfl
 
 # data <- dbReadTable(conn = con, name = 'training_features')
 
-data <- dbGetQuery(conn = con, statement = "SELECT * FROM training_features WHERE AnswerDate is not null")
+data <- dbGetQuery(conn = con, statement = "SELECT * FROM so_training_features WHERE AnswerDate is not null")
 
 # data <- read.csv(file="query_result.csv",sep=";",head=TRUE)
 

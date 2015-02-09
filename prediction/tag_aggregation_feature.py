@@ -14,46 +14,43 @@ post_tag_cache = []
 
 
 def create_tags_table(cursor, writer):
-    cursor.execute("""CREATE TABLE `tags` (
-      `Id` int(11) NOT NULL AUTO_INCREMENT,
-      `Tag` mediumtext,
-      `Count` int(11) NOT NULL,
-      `Freq` DOUBLE NOT NULL,
-      PRIMARY KEY (`Id`)
+    cursor.execute("""CREATE TABLE SO_TAGS (
+      Id    INT    NOT NULL PRIMARY KEY,
+      Tag   VARCHAR(255),
+      Count INT    NOT NULL,
+      Freq  DOUBLE NOT NULL
     )""")
     writer.commit()
 
 
 def create_tag_combos_table(cursor, writer):
-    cursor.execute("""CREATE TABLE `tag_combos` (
-      `Id` int(11) NOT NULL AUTO_INCREMENT,
-      `Tag1` mediumtext,
-      `Tag2` mediumtext,
-      `Count` int(11) NOT NULL,
-      `Togetherness` DOUBLE NOT NULL,
-      PRIMARY KEY (`Id`)
+    cursor.execute("""CREATE TABLE SO_TAG_COMBOS (
+      Id           INT    NOT NULL PRIMARY KEY,
+      Tag1         VARCHAR(255),
+      Tag2         VARCHAR(255),
+      Count        INT    NOT NULL,
+      Togetherness DOUBLE NOT NULL
     )""")
     writer.commit()
 
 
 def empty_tag_post_table(cursor, writer):
-    cursor.execute("""TRUNCATE TABLE `tag_posts`""")
+    cursor.execute("""TRUNCATE TABLE SO_TAG_POSTS""")
     writer.commit()
 
 
 def create_tag_post_table(cursor, writer):
-    cursor.execute("""CREATE TABLE `tag_posts` (
-      `Id` int(11) NOT NULL AUTO_INCREMENT,
-      `TagId` int(11),
-      `PostId` int(11),
-      PRIMARY KEY (`Id`)
+    cursor.execute("""CREATE TABLE SO_TAG_POSTS (
+      Id int NOT NULL PRIMARY KEY,
+      TagId int,
+      PostId int
     )""")
     writer.commit()
 
 
 def insert_into_tags(data, cursor, writer):
     try:
-        query = """INSERT INTO tags(Id, Tag, Count, Freq) VALUES (%s, %s, %s, %s)"""
+        query = """INSERT INTO SO_TAGS(Id, Tag, Count, Freq) VALUES (?,?,?,?)"""
         cursor.executemany(query, data)
         writer.commit()
     except Exception as err:
@@ -64,7 +61,7 @@ def insert_into_tags(data, cursor, writer):
 
 def insert_into_tag_combos(data, cursor, writer):
     try:
-        query = """INSERT INTO tag_combos(Tag1, Tag2, Count, Togetherness) VALUES (%s, %s, %s, %s)"""
+        query = """INSERT INTO SO_TAG_COMBOS(Id, Tag1, Tag2, Count, Togetherness) VALUES (?,?,?,?,?)"""
         cursor.executemany(query, data)
         writer.commit()
     except Exception as err:
@@ -75,7 +72,7 @@ def insert_into_tag_combos(data, cursor, writer):
 
 def insert_into_tag_post_map(data, cursor, writer):
     try:
-        query = """INSERT INTO tag_posts(TagId, PostId) VALUES (%s, %s)"""
+        query = """INSERT INTO SO_TAG_POSTS(Id, TagId, PostId) VALUES (?, ?, ?)"""
         cursor.executemany(query, data)
         writer.commit()
     except Exception as err:
@@ -90,8 +87,10 @@ def write_results_to_db():
 
         writer, write_cursor = database.cursor()
         tag_data = []
+        idx = 1
         for tag, count in tag_counter.iteritems():
-            tag_data.append((tag_ids[tag], tag, count, 1.0 * count / num_questions))
+            tag_data.append((idx, tag_ids[tag], tag, count, 1.0 * count / num_questions))
+            idx += 1
             if len(tag_data) >= 5000:
                 insert_into_tags(tag_data, write_cursor, writer)
                 tag_data = []
@@ -100,9 +99,11 @@ def write_results_to_db():
         print "Finished inserting tags"
 
         tag_tag_data = []
+        idx = 1
         for tag_combo, count in tag_combos_counter.iteritems():
             togetherness = 1.0 * count * num_questions / (tag_counter[tag_combo[0]] * tag_counter[tag_combo[1]])
-            tag_tag_data.append((tag_combo[0], tag_combo[1], count, togetherness))
+            tag_tag_data.append((idx, tag_combo[0], tag_combo[1], count, togetherness))
+            idx += 1
             if len(tag_tag_data) >= 5000:
                 insert_into_tag_combos(tag_tag_data, write_cursor, writer)
                 tag_tag_data = []
@@ -137,8 +138,10 @@ def analyze_posts():
     db = Database.from_config()
 
     writer, write_cursor = db.cursor()
+    
+    post_tag_cache_id = 1
 
-    for row in db.paged_query(select="Tags", from_="posts", where="ParentId is null"):
+    for row in db.paged_query(select="Tags", from_="SO_POSTS", where="ParentId is null"):
         tag_string = row[1]
         if tag_string is not None:
             tags = TAG_EXTRACTOR.findall(tag_string)
@@ -150,7 +153,8 @@ def analyze_posts():
                 else:
                     tag_id = len(tag_ids) + 1
                     tag_ids[tag] = tag_id
-                post_tag_cache.append((tag_id, row[0]))
+                post_tag_cache.append((post_tag_cache_id, tag_id, row[0]))
+                post_tag_cache_id += 1
 
             for tag_combo in itertools.combinations(sorted(tags), 2):
                 tag_combos_counter[tag_combo] = 1 + tag_combos_counter.get(tag_combo, 0)
