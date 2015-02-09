@@ -116,18 +116,18 @@ def write_results_to_db():
 
 
 def prepare_db():
-    cnx = None
+    connection = None
     try:
         cnx = Database.from_config()
-        cursor = cnx.cursor()
+        connection, cursor = cnx.cursor()
         empty_tag_post_table(cursor, cnx)
     except Exception as err:
         print "ERROR: "
         print err
-        if cnx:
-            cnx.close()
+        if connection:
+            connection.close()
     else:
-        cnx.close()
+        connection.close()
 
 
 def analyze_posts():
