@@ -59,4 +59,4 @@ if __name__ == '__main__':
     # pool.map(convert_file, enumerate(cfg.sections()))
     pool.terminate()
     
-    import_files_into_db(cfg)
+    import_files_into_db()
