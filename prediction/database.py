@@ -26,6 +26,7 @@ class Database(object):
                                            database=self.database,
                                            host=self.host)
         elif self.db_type == "hana":
+            import dbapi
             return None
         else:
             raise Exception("Unknown database type setting in application configuration.")

@@ -81,7 +81,7 @@ class xml2sql:
             if fields is None:
                 fields = list(elem.attrib.keys())
             if self.sql_insert is None:
-                self.sql_insert = 'INSERT INTO ' + table + ' (' + ','.join(fields) + ')\n'
+                self.sql_insert = 'INSERT INTO ' + table + ' (' + ','.join(fields) + ') '
             if event == "end" and elem.tag == tag:
                 row = map(lambda fname: self._as_csv(elem.attrib.get(fname, None)), fields)
 
@@ -115,7 +115,7 @@ class xml2sql:
     def _write_buffer(self):
         """Write records from buffer to the output file"""
 
-        self.output.write(self.sql_insert + 'VALUES\n' + ', \n'.join(self.output_buffer) + ';\n\n')
+        self.output.write(self.sql_insert + 'VALUES ' + ', '.join(self.output_buffer) + ';\n\n')
         self.output.flush()
         self.output_buffer = []
         self.num_insert += 1
