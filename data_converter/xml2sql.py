@@ -76,7 +76,7 @@ class xml2sql:
                 sql = r'(' + r', '.join(row) + r')'
                 sql_len += len(sql)
 
-                if sql_len + len(self.sql_insert) + 100 < max_packet:
+                if sql_len + 100 < max_packet:
                     # store the sql statement in the buffer
                     self.output_buffer.append(sql)
                 else:
