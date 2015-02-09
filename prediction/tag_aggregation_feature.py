@@ -123,7 +123,9 @@ def prepare_db():
     try:
         cnx = Database.from_config()
         connection, cursor = cnx.cursor()
-        empty_tag_post_table(cursor, cnx)
+        create_tags_table(cursor, cnx)
+        create_tag_combos_table(cursor, cnx)
+        create_tag_post_table(cursor, cnx)
     except Exception as err:
         print "ERROR: "
         print err
