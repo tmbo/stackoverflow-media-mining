@@ -1,7 +1,5 @@
--- !!!! DOSN'T WORK ON HANA !!!!
-
--- Question with more Bounty starts then Bounty Ends. 
--- doesn't work in MySQL (no `with` support)
+-- Question with more Bounty starts then Bounty Ends.
+-- doesn't work in MySQL (no with support)
 
 with BS as (
   Select v.Id as VoteId, p.Id, Count(v.Id) bountyCount

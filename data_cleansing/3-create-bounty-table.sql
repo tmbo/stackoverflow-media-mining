@@ -1,102 +1,110 @@
 -- Create Start-Date table for bounties. We need to crawl exact CreationDates
 -- from SO. The datetimes contained in the dump have time set to 00:00:00. 
-CREATE TABLE `start_bounties` (
-  `Id` int(11) NOT NULL,
-  `PostId` int(11) NOT NULL,
-  `VoteTypeId` smallint(6) DEFAULT NULL,
-  `UserId` int(11) DEFAULT NULL,
-  `CreationDate` datetime DEFAULT NULL,
-  `BountyAmount` int(11) DEFAULT NULL,
-  PRIMARY KEY (`Id`),
-  KEY `PostId` (`PostId`)
+CREATE TABLE SO_START_BOUNTIES (
+  Id           INT NOT NULL,
+  PostId       INT NOT NULL,
+  VoteTypeId   SMALLINT DEFAULT NULL,
+  UserId       INT      DEFAULT NULL,
+  CreationDate DATETIME DEFAULT NULL,
+  BountyAmount INT      DEFAULT NULL,
+  PRIMARY KEY (Id)
 );
 
-CREATE TABLE `start_corrected` (
-  `Id` int(11) NOT NULL,
-  `CreatedTime` datetime DEFAULT NULL,
-  `CreatedDate` datetime DEFAULT NULL,
-  PRIMARY KEY (`Id`)
+CREATE INDEX "start_bounties_1" ON SO_START_BOUNTIES (PostId);
+
+CREATE TABLE SO_START_CORRECTED (
+  Id          INT NOT NULL,
+  CreatedTime DATETIME DEFAULT NULL,
+  CreatedDate DATETIME DEFAULT NULL,
+  PRIMARY KEY (Id)
 );
 
-INSERT INTO start_bounties (id, PostId, VoteTypeId, UserId, CreationDate, BountyAmount)
-SELECT *
-FROM votes 
-WHERE votes.VoteTypeId = 8 
-AND EXISTS(SELECT * FROM posts WHERE posts.Id = votes.PostId);
+INSERT INTO SO_START_BOUNTIES (id, PostId, VoteTypeId, UserId, CreationDate, BountyAmount)
+  SELECT *
+  FROM SO_VOTES AS votes
+  WHERE votes.VoteTypeId = 8
+        AND EXISTS(SELECT *
+                   FROM SO_POSTS AS posts
+                   WHERE posts.Id = votes.PostId);
+
 
 -- Create End-Date table for bounties. We need to crawl exact CreationDates
 -- from SO. The datetimes contained in the dump have time set to 00:00:00.
-CREATE TABLE `end_bounties` (
-  `Id` int(11) NOT NULL,
-  `PostId` int(11) NOT NULL,
-  `VoteTypeId` smallint(6) DEFAULT NULL,
-  `UserId` int(11) DEFAULT NULL,
-  `CreationDate` datetime DEFAULT NULL,
-  `BountyAmount` int(11) DEFAULT NULL,
-  PRIMARY KEY (`Id`),
-  KEY `end_bounties_idx_2` (`PostId`)
+CREATE TABLE SO_END_BOUNTIES (
+  Id           INT NOT NULL,
+  PostId       INT NOT NULL,
+  VoteTypeId   SMALLINT DEFAULT NULL,
+  UserId       INT      DEFAULT NULL,
+  CreationDate DATETIME DEFAULT NULL,
+  BountyAmount INT      DEFAULT NULL,
+  PRIMARY KEY (Id)
 );
 
-CREATE TABLE `end_corrected` (
-  `Id` int(11) NOT NULL,
-  `CreatedTime` datetime DEFAULT NULL,
-  `CreatedDate` datetime DEFAULT NULL,
-  PRIMARY KEY (`Id`)
+CREATE INDEX "end_bounties_idx_2" ON SO_END_BOUNTIES (PostId);
+
+CREATE TABLE SO_END_CORRECTED (
+  Id          INT NOT NULL,
+  CreatedTime DATETIME DEFAULT NULL,
+  CreatedDate DATETIME DEFAULT NULL,
+  PRIMARY KEY (Id)
 );
 
-INSERT INTO end_bounties (id, PostId, VoteTypeId, UserId, CreationDate, BountyAmount)
-SELECT 
-  votes.Id, 
-  votes.PostId, 
-  votes.VoteTypeId, 
-  posts.OwnerUserId, 
-  votes.CreationDate, 
-  votes.BountyAmount
-FROM votes, posts 
-WHERE votes.VoteTypeId = 9 AND posts.Id = votes.PostId;
+INSERT INTO SO_END_BOUNTIES (id, PostId, VoteTypeId, UserId, CreationDate, BountyAmount)
+  SELECT
+    votes.Id,
+    votes.PostId,
+    votes.VoteTypeId,
+    posts.OwnerUserId,
+    votes.CreationDate,
+    votes.BountyAmount
+  FROM SO_VOTES AS votes, SO_POSTS AS posts
+  WHERE votes.VoteTypeId = 9 AND posts.Id = votes.PostId;
 
 -- Create special table that contains a 'complete' bounty, referencing the start
 -- vote and the end vote. This is very helpful in calculating answer durations
 
-CREATE TABLE `bounties` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `QuestionId` int(11) NOT NULL,
-  `AnswerId` int(11) NOT NULL,
-  `StartId` int(11) NOT NULL,
-  `EndId` int(11) NOT NULL,
-  `CreatorId` int(11) DEFAULT NULL,
-  `HunterId` int(11) DEFAULT NULL,
-  `StartDate` datetime DEFAULT NULL,
-  `EndDate` datetime DEFAULT NULL,
-  `StartBountyAmount` int(11) DEFAULT NULL,
-  `HuntedBountyAmount` int(11) DEFAULT NULL,
-  PRIMARY KEY (`Id`),
-  KEY `bounties_idx_8` (`HunterId`),
-  KEY `QuestionId` (`QuestionId`),
-  KEY `bounties_idx_9` (`CreatorId`),
-  KEY `bounties_idx_2` (`StartId`),
-  KEY `bounties_idx_3` (`EndId`),
-  KEY `bounties_idx_4` (`AnswerId`),
-  KEY `bounties_idx_5` (`StartDate`),
-  KEY `bounties_idx_6` (`EndDate`)
+CREATE TABLE SO_BOUNTIES (
+  Id                 INT NOT NULL PRIMARY KEY,
+  QuestionId         INT NOT NULL,
+  AnswerId           INT NOT NULL,
+  StartId            INT NOT NULL,
+  EndId              INT NOT NULL,
+  CreatorId          INT      DEFAULT NULL,
+  HunterId           INT      DEFAULT NULL,
+  StartDate          DATETIME DEFAULT NULL,
+  EndDate            DATETIME DEFAULT NULL,
+  StartBountyAmount  INT      DEFAULT NULL,
+  HuntedBountyAmount INT      DEFAULT NULL
 );
 
-INSERT INTO bounties (QuestionId, AnswerId, StartId, EndId, CreatorId, HunterId, StartDate, EndDate, StartBountyAmount, HuntedBountyAmount)
-SELECT 
-  start_bounties.PostId as QuestionId,
-  end_bounties.PostId as AnswerId,
-  start_bounties.Id as StartId,
-  end_bounties.Id as EndId,
-  start_bounties.UserId as CreatorId,
-  end_bounties.UserId as HunterId,
-  start_bounties.CreationDate as StartDate,
-  end_bounties.CreationDate as EndDate,
-  start_bounties.BountyAmount as StartBountyAmount,
-  end_bounties.BountyAmount as HuntedBountyAmount
-FROM start_bounties, end_bounties, active_posts as posts 
-WHERE 
-    -- either the bounty was successful
-    (start_bounties.PostId = posts.ParentId AND end_bounties.PostId = posts.Id 
-  OR 
-    -- or the bounty was unsuccessful (no accepted answer)
-    start_bounties.PostId = posts.Id AND end_bounties.PostId = posts.Id); 
+CREATE INDEX bounties_idx_8 ON SO_BOUNTIES (HunterId);
+CREATE INDEX bounties_idx_1 ON SO_BOUNTIES (QuestionId);
+CREATE INDEX bounties_idx_9 ON SO_BOUNTIES (CreatorId);
+CREATE INDEX bounties_idx_2 ON SO_BOUNTIES (StartId);
+CREATE INDEX bounties_idx_3 ON SO_BOUNTIES (EndId);
+CREATE INDEX bounties_idx_4 ON SO_BOUNTIES (AnswerId);
+CREATE INDEX bounties_idx_5 ON SO_BOUNTIES (StartDate);
+CREATE INDEX bounties_idx_6 ON SO_BOUNTIES (EndDate);
+
+CREATE SEQUENCE SO_BOUNTIES_SEQ START WITH 1;
+
+INSERT INTO SO_BOUNTIES (Id, QuestionId, AnswerId, StartId, EndId, CreatorId, HunterId, StartDate, EndDate, StartBountyAmount, HuntedBountyAmount)
+  SELECT
+    SO_BOUNTIES_SEQ.NEXTVAL,
+    start_bounties.PostId       AS QuestionId,
+    end_bounties.PostId         AS AnswerId,
+    start_bounties.Id           AS StartId,
+    end_bounties.Id             AS EndId,
+    start_bounties.UserId       AS CreatorId,
+    end_bounties.UserId         AS HunterId,
+    start_bounties.CreationDate AS StartDate,
+    end_bounties.CreationDate   AS EndDate,
+    start_bounties.BountyAmount AS StartBountyAmount,
+    end_bounties.BountyAmount   AS HuntedBountyAmount
+  FROM SO_START_BOUNTIES AS start_bounties, SO_END_BOUNTIES AS end_bounties, SO_POSTS AS posts
+  WHERE
+-- either the bounty was successful
+    (start_bounties.PostId = posts.ParentId AND end_bounties.PostId = posts.Id
+     OR
+     -- or the bounty was unsuccessful (no accepted answer)
+     start_bounties.PostId = posts.Id AND end_bounties.PostId = posts.Id);

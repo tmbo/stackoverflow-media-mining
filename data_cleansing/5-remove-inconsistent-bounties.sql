@@ -4,9 +4,9 @@
 
 -- We can't delete them directly because we cannot use an EXIST on the table 
 -- where the delete is happening. Therefore we need an intermediate table
-CREATE TABLE `bounties_delete` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`Id`),
+CREATE TABLE bounties_delete (
+  Id int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (Id),
 };
 
 INSERT INTO bounties_delete(Id) 
@@ -52,7 +52,7 @@ WHERE EXISTS (
   );
 
 
-DROP TABLE `bounties_delete`;
+DROP TABLE bounties_delete;
 
 -- Wrongly ordered bounty events
 DELETE
