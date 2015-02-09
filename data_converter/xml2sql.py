@@ -76,14 +76,14 @@ class xml2sql:
 
                 if sql_len < max_packet:
                     # store the sql statement in the buffer
-                    self.output_buffer.append(row)
+                    self.output_buffer.append(tuple(row))
                 else:
                     # packet size exceeded. flush the sql and start a new insert query
                     yield self.output_buffer
                     self.output_buffer = []
                     self.num_insert += 1
                     
-                    self.output_buffer.append(row)
+                    self.output_buffer.append(tuple(row))
                     sql_len = 0
 
                 n += 1
