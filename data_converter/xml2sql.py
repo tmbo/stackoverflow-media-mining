@@ -38,7 +38,7 @@ class xml2sql:
             raise
 
     def _escape_csv_value(self, v):
-        return '"' + v.replace('"', r'\"').replace('\n', r'\n').replace('\'', r"\'") + '"'
+        return "'" + v.replace("'", "''") + "'"
     
     def _as_csv(self, value):
         if value is None:
