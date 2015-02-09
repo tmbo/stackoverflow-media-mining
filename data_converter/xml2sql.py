@@ -62,8 +62,7 @@ class xml2sql:
         sql_len = 0
         n = 0
 
-        packet_size = 0
-        max_packet = 1048576 * packet
+        max_packet = 5000
 
 
         # iterate through the xml
@@ -73,19 +72,18 @@ class xml2sql:
             if event == "end" and elem.tag == tag:
                 row = map(lambda fname: self._as_csv(elem.attrib.get(fname, None)), fields)
 
-                sql = r'(' + r', '.join(row) + r')'
-                sql_len += len(sql)
+                sql_len += len(row)
 
-                if sql_len + 100 < max_packet:
+                if sql_len < max_packet:
                     # store the sql statement in the buffer
-                    self.output_buffer.append(sql)
+                    self.output_buffer.append(row)
                 else:
                     # packet size exceeded. flush the sql and start a new insert query
                     yield self.output_buffer
                     self.output_buffer = []
                     self.num_insert += 1
                     
-                    self.output_buffer.append(sql)
+                    self.output_buffer.append(row)
                     sql_len = 0
 
                 n += 1
