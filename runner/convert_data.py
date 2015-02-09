@@ -39,7 +39,7 @@ def convert_file(data):
 
 def import_files_into_db():
     database = Database.from_config()
-    cursor, connection = database.cursor()
+    connection, cursor  = database.cursor()
     print "Creating stackoverflow tables..."
     execute_sql_from_file("runner/0-create-so-tables.sql", cursor)
     connection.close()
