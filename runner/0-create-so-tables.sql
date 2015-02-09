@@ -4,16 +4,16 @@ CREATE TABLE SO_USERS (
   Id             INT NOT NULL,
   Reputation     INT NOT NULL,
   CreationDate   DATETIME DEFAULT NULL,
-  DisplayName    VARCHAR  DEFAULT NULL,
+  DisplayName    VARCHAR(1024)  DEFAULT NULL,
   LastAccessDate DATETIME DEFAULT NULL,
   Views          INT      DEFAULT '0',
-  WebsiteUrl     VARCHAR  DEFAULT NULL,
-  Location       VARCHAR  DEFAULT NULL,
+  WebsiteUrl     VARCHAR(1024)  DEFAULT NULL,
+  Location       VARCHAR(1024)  DEFAULT NULL,
   AboutMe        CLOB,
   Age            INT      DEFAULT NULL,
   UpVotes        INT      DEFAULT NULL,
   DownVotes      INT      DEFAULT NULL,
-  EmailHash      VARCHAR  DEFAULT NULL,
+  EmailHash      VARCHAR(1024)  DEFAULT NULL,
   PRIMARY KEY (Id)
 );
 
