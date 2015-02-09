@@ -56,7 +56,7 @@ if __name__ == '__main__':
     ensure_folder_exists(OUT_DIR)
     cfg = from_config()
     pool = Pool()
-    pool.map(convert_file, enumerate(cfg.sections()))
+    # pool.map(convert_file, enumerate(cfg.sections()))
     pool.terminate()
     
     import_files_into_db(cfg)
