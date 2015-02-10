@@ -14,7 +14,7 @@ FLUSH_LIMIT = 500
 def update_trainings_features(data, cursor, writer):
 
     try:
-        query = """UPDATE SO_TRAINING_FEATURES_COPY
+        query = """UPDATE SO_TRAINING_FEATURES
                     SET
                     num_code_snippet = ?,
                     num_images = ?,

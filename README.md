@@ -99,7 +99,7 @@ The Web Server relies on four data sources for its calculations:
 4. Two trained LDAs located under `output/ldas`, one for a topic model trained on the whole dataset and one without verb phrases.
 
 ### 1. Launching the server
-Make sure the DB is up and running and the `application.cfg` is set up properly to allow access to the DB.
+Make sure the DB is up and running and the `application.cfg` is set up properly to allow access to the DB. Run the following script from the root directory:
 
 ```sh
 python server.py
@@ -123,3 +123,16 @@ REST API
 ```
 
 ### 3. Embedding into a different page
+If you like to embed the prediction into your site, we recommend using an iFrame, as it correctly encapsulates all styles, urls and requests. To help you with this we provide a little JS file that dynamically renders the iFrame into a container of your choice. For an example see:
+```
+web_server/embed-stackoverflow-example.html
+web_server/embed-stackoverflow.js
+```
+
+Use the emebding script like this: 
+```
+  <script type="text/javascript" src="embed-stackoverflow.js"></script>
+  <script type="text/javascript">
+    renderIntoElement(selector, url_to_prediction_server);
+  </script>
+```
