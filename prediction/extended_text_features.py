@@ -31,16 +31,18 @@ def extract_best_topics(els, n):
 
 def update_topic_features(data, cursor, writer):
     try:
-        query = """UPDATE training_features, bounties b
-            SET body_avg_chars=%s,
-                body_avg_words=%s,
-                body_ari=%s,
-                body_cli=%s,
-                body_fre=%s,
-                body_gfi=%s,
-                topics=%s,
-                vp_topics=%s
-            WHERE b.QuestionId=%s and b.Id = training_features.Id"""
+        query = """UPDATE SO_TRAINING_FEATURES
+                    SET
+                      body_avg_chars = ?,
+                      body_avg_words = ?,
+                      body_ari       = ?,
+                      body_cli       = ?,
+                      body_fre       = ?,
+                      body_gfi       = ?,
+                      topics         = ?,
+                      vp_topics      = ?
+                    WHERE
+                      Id = ?"""
         cursor.executemany(query, data)
         writer.commit()
     except Exception as err:
@@ -56,7 +58,13 @@ if __name__ == "__main__":
         print "Starting number crunching\n"
 
         cursor = cnx.cursor()
-        cursor.execute("Select PostId, Body FROM bounty_text")
+        cursor.execute("""SELECT
+                            b.Id,
+                            question.Body
+                          FROM SO_BOUNTIES b, SO_POSTS question
+                          WHERE
+                            b.QuestionId = question.Id
+                          LIMIT 2""")
 
         print "Fetching questions..."
         rows = cursor.fetchall()
