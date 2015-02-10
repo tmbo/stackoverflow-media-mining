@@ -51,14 +51,13 @@ class Database(object):
         query_template = "SELECT Id %s FROM %s %s AND Id > %d ORDER BY Id ASC LIMIT %d"
         try:
             print "Creating connection..."
-            db = self.connection()
             print "Creating cursor..."
-            con, cursor = db.cursor()
+            con, cur = self.cursor()
             print "Running loop..."
             while not is_empty:
                 print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
-                cursor.execute(query_template % (_select, from_, _where, last_id, page_size))
-                results = cursor.fetchall()
+                cur.execute(query_template % (_select, from_, _where, last_id, page_size))
+                results = cur.fetchall()
                 # print "Fetched results."
 
                 if len(results) > 0:
@@ -74,10 +73,10 @@ class Database(object):
         except Exception as err:
             print "Database ERROR: "
             print err
-            db.close()
+            con.close()
             raise err
             print "Rec call: "
             for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample):
                 yield r
         else:
-            db.close()
+            con.close()
