@@ -39,21 +39,22 @@ class Database(object):
         con = self.connection()
         return con, con.cursor(**kwargs)
 
-    def paged_query(self, select, from_, where, start_offset=0, page_size=50000, subsample=1.0):
+    def paged_query(self, select, from_, where, start_offset=0, page_size=50000, subsample=1.0, id_prefix=None):
         # We need to use pagination here. Since we are expecting something around 8 million results the cursor will time
         # out before we get a chance to process all posts
         # print "called page query"
 
+        _prefix = id_prefix + "." if id_prefix is not None else ""
         last_id = start_offset
         is_empty = False
         _where = "WHERE " + where if where is not None else ""
         _select = ", " + select if select is not None else ""
-        query_template = "SELECT Id %s FROM %s %s AND Id > %d ORDER BY Id ASC LIMIT %d"
+        query_template = "SELECT %sId %s FROM %s %s AND Id > %d ORDER BY Id ASC LIMIT %d"
         try:
             con, cur = self.cursor()
             while not is_empty:
                 # print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
-                cur.execute(query_template % (_select, from_, _where, last_id, page_size))
+                cur.execute(query_template % (_prefix, _select, from_, _where, last_id, page_size))
                 results = cur.fetchall()
                 # print "Fetched results."
 
