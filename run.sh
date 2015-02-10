@@ -36,4 +36,5 @@ cd ../..
 echo "~~~~~ STEP 3: INSERT DATA INTO HANA"
 python insert_data/insert_data.py
 
-echo "~~~~~ STEP 4: "
+echo "~~~~~ STEP 4: CRAWL MISSING DATES"
+# TODO: convert code to python from scala
