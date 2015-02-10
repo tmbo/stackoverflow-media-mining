@@ -8,3 +8,6 @@ CREATE INDEX posts_idx_5 ON SO_POSTS (PostTypeId);
 
 -- Create necessary IDXs on votes table
 CREATE INDEX votes_idx_1 ON SO_VOTES (PostId);
+
+-- Create necessary IDXs on comments table
+CREATE INDEX comments_idx_1 ON SO_COMMENTS (PostId);

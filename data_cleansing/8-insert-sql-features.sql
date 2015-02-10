@@ -110,3 +110,22 @@ FROM SO_TRAINING_FEATURES
     WHERE b.QuestionId = v.PostId AND v.VoteTypeId = 3 AND v.CreationDate < b.StartDate
     GROUP BY b.Id
   ) AS DOWN ON DOWN.Id = SO_TRAINING_FEATURES.Id;
+
+-- Calculate comment features
+
+UPDATE SO_TRAINING_FEATURES
+SET num_comments_bounty = num_comments, 
+  log_num_comments = floor(log(2, num_comments)),
+  avg_len_comments = len_comments / num_comments,
+  len_comments_bounty = len_comments,
+  log_len_comments = floor(log(2, len_comments))
+FROM SO_TRAINING_FEATURES
+  JOIN
+  (
+    SELECT
+      b.Id, Count(comment.Id) as num_comments, SUM(LENGTH(comment.Text)) as len_comments
+    FROM SO_BOUNTIES b, SO_COMMENTS comment
+    WHERE b.QuestionId = comment.PostId
+    GROUP BY b.Id
+  ) AS X ON X.Id = SO_TRAINING_FEATURES.Id;
+
