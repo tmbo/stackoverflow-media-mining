@@ -54,7 +54,7 @@ class Database(object):
 
             con, cursor = db.cursor()
             while not is_empty:
-                # print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
+                print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
                 cursor.execute(query_template % (_select, from_, _where, last_id, page_size))
                 results = cursor.fetchall()
                 # print "Fetched results."

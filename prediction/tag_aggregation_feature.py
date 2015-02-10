@@ -14,24 +14,30 @@ post_tag_cache = []
 
 
 def create_tags_table(cursor, writer):
-    cursor.execute("""CREATE TABLE SO_TAGS (
-      Id    INT    NOT NULL PRIMARY KEY,
-      Tag   VARCHAR(255),
-      Count INT    NOT NULL,
-      Freq  DOUBLE NOT NULL
-    )""")
-    writer.commit()
+    try:
+        cursor.execute("""CREATE TABLE SO_TAGS (
+          Id    INT    NOT NULL PRIMARY KEY,
+          Tag   VARCHAR(255),
+          Count INT    NOT NULL,
+          Freq  DOUBLE NOT NULL
+        )""")
+        writer.commit()
+    except Exception:
+        return
 
 
 def create_tag_combos_table(cursor, writer):
-    cursor.execute("""CREATE TABLE SO_TAG_COMBOS (
-      Id           INT    NOT NULL PRIMARY KEY,
-      Tag1         VARCHAR(255),
-      Tag2         VARCHAR(255),
-      Count        INT    NOT NULL,
-      Togetherness DOUBLE NOT NULL
-    )""")
-    writer.commit()
+    try:
+        cursor.execute("""CREATE TABLE SO_TAG_COMBOS (
+          Id           INT    NOT NULL PRIMARY KEY,
+          Tag1         VARCHAR(255),
+          Tag2         VARCHAR(255),
+          Count        INT    NOT NULL,
+          Togetherness DOUBLE NOT NULL
+        )""")
+        writer.commit()
+    except Exception:
+        return
 
 
 def empty_tag_post_table(cursor, writer):
