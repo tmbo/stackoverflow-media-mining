@@ -59,15 +59,18 @@ There are two configuration files, `application.cfg` and `stackoverflow_data.cfg
 | port                       | 1337                              | Port of the running DB server              |
 | typ                        | mysql                             | DB type, should be either `hana`or `mysql` |
 | database                   | stackoverflow                     | Name of the database to work on            |
-| &nbsp;                     |                                   |                                            |
+
+The `stackoverflow_data.cfg` should contain one section for each `<TABLENAME>` containing the attributes described below.
+
 | **stackoverflow_data.cfg** | **example**                       |                                            |
+|----------------------------|-----------------------------------|--------------------------------------------|
 | [`<TABLENAME>`]            |                                   |                                            |
 | input                      | Votes.xml                         | Name of the input XML file in the SO dump  |
 | table                      | SO_VOTES                          | Name of the table in the DB                |
 | columns                    | Id CreationDate PostId VoteTypeId | Columns to transfer from XML to DB         |
 | timestamps                 | CreationDate                      | Columns that need timestamp reformatting   |
 
-The `stackoverflow_data.cfg` should contain one section for each `<TABLENAME>` containing the attributes described above.
+
 
 ### 3. Getting the data
 There is a script called `run.sh` this script will download the most recent stack overflow dump from the archive. After that the data will get unzipped and inserted int to the database. All scripts will use the `output/` directory as a working directory. Please make sure it is writable.

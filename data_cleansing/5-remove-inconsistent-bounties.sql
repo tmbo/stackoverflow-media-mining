@@ -4,63 +4,65 @@
 
 -- We can't delete them directly because we cannot use an EXIST on the table 
 -- where the delete is happening. Therefore we need an intermediate table
-CREATE TABLE bounties_delete (
-  Id int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (Id),
-};
+CREATE TABLE SO_BOUNTIES_DELETE (
+  Id INT NOT NULL PRIMARY KEY
+);
 
-INSERT INTO bounties_delete(Id) 
-SELECT Id FROM bounties a 
-WHERE EXISTS( -- We only want the combinations that are closest together
-  SELECT * 
-  FROM bounties b
-  WHERE NOT(b.Id = a.Id) 
-    AND a.StartId = b.StartId 
-    AND b.EndDate < a.EndDate
-  );
-
-DELETE 
-FROM bounties 
-WHERE EXISTS (
-  SELECT bounties_delete.Id 
-  FROM bounties_delete 
-  WHERE bounties_delete.Id = bounties_n.Id
+INSERT INTO SO_BOUNTIES_DELETE (Id)
+  SELECT a.Id
+  FROM SO_BOUNTIES a
+  WHERE EXISTS(-- We only want the combinations that are closest together
+      SELECT *
+      FROM SO_BOUNTIES b
+      WHERE NOT (b.Id = a.Id)
+            AND a.StartId = b.StartId
+            AND b.EndDate < a.EndDate
   );
 
 DELETE
-FROM bounties_delete;
-
--- Started Bounties without an end bounty event
-INSERT INTO bounties_delete(Id)
-(
-  SELECT b.Id FROM bounties b
-  WHERE b.StartDate > b.EndDate
-    AND NOT EXISTS (
-      SELECT * FROM bounties 
-      WHERE bounties.StartDate < bounties.EndDate 
-        AND bounties.StartDate = b.StartDate 
-        AND bounties.QuestionId = b.QuestionId
-    )
+FROM SO_BOUNTIES
+WHERE EXISTS(
+    SELECT SO_BOUNTIES_DELETE.Id
+    FROM SO_BOUNTIES_DELETE
+    WHERE SO_BOUNTIES_DELETE.Id = SO_BOUNTIES.Id
 );
 
-DELETE 
-FROM bounties 
-WHERE EXISTS (
-  SELECT bounties_delete.Id 
-  FROM bounties_delete 
-  WHERE bounties_delete.Id = bounties_n.Id
+DELETE
+FROM SO_BOUNTIES_DELETE;
+
+-- Started Bounties without an end bounty event
+INSERT INTO SO_BOUNTIES_DELETE (Id)
+  (
+    SELECT b.Id
+    FROM SO_BOUNTIES b
+    WHERE b.StartDate > b.EndDate
+          AND NOT EXISTS(
+        SELECT *
+        FROM SO_BOUNTIES a
+        WHERE a.StartDate < a.EndDate
+              AND a.StartDate = b.StartDate
+              AND a.QuestionId = b.QuestionId
+    )
   );
 
+DELETE
+FROM SO_BOUNTIES
+WHERE EXISTS(
+    SELECT SO_BOUNTIES_DELETE.Id
+    FROM SO_BOUNTIES_DELETE
+    WHERE SO_BOUNTIES_DELETE.Id = SO_BOUNTIES.Id
+);
 
-DROP TABLE bounties_delete;
+
+DROP TABLE SO_BOUNTIES;
 
 -- Wrongly ordered bounty events
 DELETE
-FROM bounties
-WHERE bounties.StartDate > bounties.EndDate;
+FROM SO_BOUNTIES
+WHERE SO_BOUNTIES.StartDate > SO_BOUNTIES.EndDate;
 
 -- Delete awarded Bounties without a valid bounty hunter
-DELETE 
-FROM bounties 
-WHERE bounties.HunterId is null 
-  AND bounties.HuntedBountyAmount is not null;
+DELETE
+FROM SO_BOUNTIES
+WHERE SO_BOUNTIES.HunterId IS NULL
+      AND SO_BOUNTIES.HuntedBountyAmount IS NOT NULL;

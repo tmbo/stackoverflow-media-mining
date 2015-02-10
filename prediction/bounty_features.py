@@ -1,6 +1,6 @@
 from ordereddict import OrderedDict
 from time import time
-from utils import trunc_log2
+from utils import trunc_log2, trunc_log10
 
 
 def log(stats):
@@ -44,7 +44,7 @@ def calculate_bounty_features(question):
     stats["log_time_till_bounty_creation"] = trunc_log2(stats["time_till_bounty_creation"])
     stats["question_score"] = score(question)
     stats["view_count"] = view_count(question)
-    stats["log_avg_daily_view"] = trunc_log2(stats["view_count"] / stats["time_till_bounty_creation"])
+    stats["log_avg_daily_view"] = trunc_log10(stats["view_count"] / stats["time_till_bounty_creation"])
 
     stats["other_active_bounties"] = 0  # TODO remove this one
 

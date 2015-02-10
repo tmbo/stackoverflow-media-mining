@@ -1,5 +1,6 @@
 -- Question with more Bounty starts then Bounty Ends.
--- doesn't work in MySQL (no with support)
+-- doesn't work in MySQL (no with support), or HANA
+-- Not that important (will only delete two rows), but for sake of completeness
 
 with BS as (
   Select v.Id as VoteId, p.Id, Count(v.Id) bountyCount
