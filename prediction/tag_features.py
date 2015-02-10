@@ -19,14 +19,20 @@ def number_of_popular_tags(tag_stats, threshold):
 
 
 def tag_popularity(tag_stats):
+    if len(tag_stats) == 0:
+        return 0
     return reduce(lambda summed, x: summed + x[3], tag_stats, 0) / len(tag_stats)
 
 
 def num_subscribers(subscribers, key):
+    if len(subscribers) == 0:
+        return 0
     return reduce(lambda summed, x: summed + (x[key] or 0), subscribers, 0) / len(subscribers)
 
 
+
 def percentage_subscribers(subscribers, key):
+
     sum = 0
     count = 0
     for sub1 in subscribers: # active or responsive subscribers
@@ -35,16 +41,22 @@ def percentage_subscribers(subscribers, key):
                 sum += sub1[key] / sub2[1]
                 count += 1
 
-
-    return sum / count
+    if count == 0:
+        return 0
+    else:
+        return sum / count
 
 
 def min_subscribers(subscribers):
+    if len(subscribers) == 0:
+        return 0
     min_subscriber = min(subscribers, key=lambda x: x[1])
     return min_subscriber[1]
 
 
 def max_subscribers(subscribers):
+    if len(subscribers) == 0:
+        return 0
     max_subscriber = max(subscribers, key=lambda x: x[1])
     return max_subscriber[1]
 

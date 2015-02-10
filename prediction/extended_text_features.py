@@ -16,8 +16,8 @@ FLUSH_LIMIT = 500
 class TopicModel(object):
 
     def __init__(self):
-        self.vp_model = vp_topic_model(name="vp_question", base_dir="../output/ldas")
-        self.whole_model = complete_topic_model(name="whole_question", base_dir="../output/ldas")
+        self.vp_model = vp_topic_model(name="vp_question", base_dir="output/ldas")
+        self.whole_model = complete_topic_model(name="whole_question", base_dir="output/ldas")
 
     def predict_vp_topics(self, text):
         return self.vp_model.topics(text)
@@ -76,8 +76,8 @@ if __name__ == "__main__":
         preprocessed_body = map(lambda row: remove_tags(remove_code(row[1].encode("utf-8"))).lower(), rows)
 
         print "Loading models..."
-        vp_model = vp_topic_model(name="vp_question", base_dir="../output/ldas")
-        whole_model = complete_topic_model(name="whole_question", base_dir="../output/ldas")
+        vp_model = vp_topic_model(name="vp_question", base_dir="output/ldas")
+        whole_model = complete_topic_model(name="whole_question", base_dir="output/ldas")
 
         updateData = []
 
