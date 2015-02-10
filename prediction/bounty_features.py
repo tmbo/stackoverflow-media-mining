@@ -3,6 +3,7 @@ from time import time
 from utils import trunc_log2, trunc_log10
 
 
+# Write bounty features to console
 def log(stats):
     print "Number of Answer: ", stats["num_answers"]
     print "Time since Question Creation: ", stats["time_till_bounty_creation"]
@@ -14,27 +15,33 @@ def log(stats):
     print "-----------------------------------------"
 
 
+# Numbers of answers of a question
 def number_of_answers(question):
     return question["answer_count"]
 
 
+# Time between the creation date of a question and right now
 def time_since_creation(question):
     creation_date = question["creation_date"]
     return time() - creation_date
 
 
+# Assumed height of a bounty
 def height_of_bounty(question):
     return 50
 
 
+# Score of a question (upvotes - downvotes)
 def score(question):
     return question["score"]
 
 
+# Number of user visits on a question
 def view_count(question):
     return question["view_count"]
 
 
+# Combine all bounty features into a dictionary
 def calculate_bounty_features(question):
     stats = OrderedDict()
 

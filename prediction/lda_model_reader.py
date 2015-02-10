@@ -3,6 +3,10 @@ import logging
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+# This file is mostly for debug purposes
+# It can be used to print the topics of an LDA model
+# to console.
+
 if __name__ == "__main__":
     # Prints a lda model to console
     name = "VP_question"

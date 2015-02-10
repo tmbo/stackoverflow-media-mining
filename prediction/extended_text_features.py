@@ -7,8 +7,12 @@ import logging
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+# How many records to update as one batch
 FLUSH_LIMIT = 500
 
+
+# A topic model consisting of two trained instances. One trained on a complete
+# corpus, the other trained without NPs
 class TopicModel(object):
 
     def __init__(self):
@@ -18,17 +22,17 @@ class TopicModel(object):
     def predict_vp_topics(self, text):
         return self.vp_model.topics(text)
 
-
     def predict_whole_topics(self, text):
         return self.whole_model.topics(text)
 
 
-
+# Extract the best entries from a sparse array
 def extract_best_topics(els, n):
     sorted_by_second = sorted(els, key=itemgetter(1), reverse=True)
     return map(itemgetter(0), sorted_by_second[0:n])
 
 
+# Flush the updated features to DB
 def update_topic_features(data, cursor, writer):
     try:
         query = """UPDATE SO_TRAINING_FEATURES
@@ -68,6 +72,7 @@ if __name__ == "__main__":
         print "Fetching questions..."
         rows = cursor.fetchall()
 
+        # Remove all code snippets and tags
         preprocessed_body = map(lambda row: remove_tags(remove_code(row[1].encode("utf-8"))).lower(), rows)
 
         print "Loading models..."
@@ -77,6 +82,7 @@ if __name__ == "__main__":
         updateData = []
 
         for idx, row in enumerate(rows):
+            # calculate all the features and store them
             whole_topics = whole_model.topics(preprocessed_body[idx])
             vp_topics = vp_model.topics(preprocessed_body[idx])
 

@@ -2,6 +2,9 @@ import os
 import ConfigParser
 
 
+# DB API endpoint. Uses a configuration file to connect to a DB
+# Provides convenience wrappers to access cursor methods and 
+# for paginated queries
 class Database(object):
     def __init__(self, config):
         self.user = config.get("DB", "user")
@@ -12,14 +15,16 @@ class Database(object):
         self.db_type = config.get("DB", "typ")
 
 
+    # Load the database settings from file
     @staticmethod
-    def from_config(file_name='../application.cfg'):
+    def from_config(file_name='application.cfg'):
         config = ConfigParser.RawConfigParser()
         scriptDir = os.path.dirname(os.path.realpath(__file__))
         configDir = os.path.join(scriptDir, file_name)
         config.read(configDir)
         return Database(config)
 
+    # Create a new connection using the specified settings
     def connection(self):
         if self.db_type == "mysql":
             import mysql.connector
@@ -35,15 +40,14 @@ class Database(object):
         else:
             raise Exception("Unknown database type setting in application configuration.")
 
+    # Create a cursor for DB queries
     def cursor(self, **kwargs):
         con = self.connection()
         return con, con.cursor(**kwargs)
 
+    # Execute a paged query. Mostly necessary for slow DBs like mysql. Otherwise the DB
+    # will not respond if the query result is to big.
     def paged_query(self, select, from_, where, start_offset=0, page_size=50000, subsample=1.0, id_prefix=None):
-        # We need to use pagination here. Since we are expecting something around 8 million results the cursor will time
-        # out before we get a chance to process all posts
-        # print "called page query"
-
         _prefix = id_prefix + "." if id_prefix is not None else ""
         last_id = start_offset
         is_empty = False
@@ -52,6 +56,9 @@ class Database(object):
         query_template = "SELECT %sId %s FROM %s %s AND %sId > %d ORDER BY %sId ASC LIMIT %d"
         try:
             con, cur = self.cursor()
+            # We are going to sort by id and query one page after another. If the 
+            # query fails we are going to repeat it. This might lead to SO if a 
+            # query always fails.
             while not is_empty:
                 # print "Running query: %s" % query_template % (_prefix, _select, from_, _where, _prefix, last_id, _prefix, page_size)
                 cur.execute(query_template % (_prefix, _select, from_, _where, _prefix, last_id, _prefix, page_size))

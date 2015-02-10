@@ -2,7 +2,7 @@ import re
 from curses.ascii import isdigit
 from nltk.corpus import cmudict
 
-
+# This class is used to count the syllables of a given text.
 class CMUSyllables(object):
     def __init__(self):
 

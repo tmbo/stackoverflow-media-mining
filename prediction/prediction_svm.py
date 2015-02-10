@@ -10,11 +10,17 @@ from sklearn.grid_search import GridSearchCV
 from database import Database
 from utils import array_from_sparse, ensure_folder_exists
 
+# Name of the table to grab the data from
 name_of_feature_table = "SO_TRAINING_FEATURES"
 
+# Number of entries used for training and testing for both models
 train_size = 20000
 test_size = 1000
 
+# Decision boundary for time training SVM. Value in hours
+time_y_limit = (24 * 2.5)
+
+# Only features categories listed here will be used for training
 active_features = [
     'text',
     'tags',
@@ -24,6 +30,7 @@ active_features = [
     'topic'
 ]
 
+# Mapping of feature categories to the individual columns
 featuresets = {
     'text': [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
     'tags': [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37],
@@ -46,22 +53,27 @@ def report(grid_scores, n_top=3):
         print("")
 
 
+# Save a trained model to file. WARNING: If the source code of the model changes
+# loading will not work since this uses PICKEL.
 def store_trained_instance(clf, file_name):
     joblib.dump(clf, file_name)
 
 
+# Restore a trained instance from file
 def load_trained_instance(file_name):
     return joblib.load(file_name)
 
 
+# Convert a date to a timestamp
 def convert_date_to_timestamp(str):
     return time.mktime(str.timetuple())
 
-
+# Calculate Y labels for annotated training. 
 def calculate_y_label(duration_in_minutes):
-    return 1 if duration_in_minutes / 60 < (24 * 2.5) else 0
+    return 1 if duration_in_minutes / 60 < time_y_limit else 0
 
 
+# Load the data for training from the DB
 def load_data_from_db():
     database = Database.from_config()
     con, cursor = database.cursor()
@@ -72,6 +84,7 @@ def load_data_from_db():
     return results
 
 
+# Train an SVM instance on data. Returning the svm and a fitted scaler.
 def train_svm(unscaled_X, y, name, expl=""):
     print "Working with %d features on %d examples. Enabled: %s" % (
     len(unscaled_X[0]), len(unscaled_X), active_features)
@@ -100,12 +113,14 @@ def train_svm(unscaled_X, y, name, expl=""):
     return clf, scaler
 
 
+# Train a SVM to predict the success of a bounty
 def train_to_predict_success(data):
     X = extract_features(data)
     y = labels_for_success_prediction(data)
     return train_svm(X, y, "SUCCESS", "estimate if bounty is going to succeed using SVM on trainings data ...")
 
 
+# Train a SVM to predict if a bounty will be sucessfull in a given time span (time_y_limit)
 def train_to_predict_time(data):
     X = extract_features(data)
     y = labels_for_time_prediction(data)
@@ -143,6 +158,7 @@ def grid_train_to_predict_time(unscaled_X, y, name):
     return clf, scaler
 
 
+# Bring the data from DB into a format suitable for SVM training
 def extract_features(data):
     X = []
 
@@ -150,8 +166,11 @@ def extract_features(data):
 
     # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate, feature1, feature2, feature3, ...
     for row in data:
+        # Only use activated feature categories
         features = [x for idx, x in enumerate(row) if
-                    idx in actives]  # remove the first four elements from the column (id and dates)
+                    idx in actives]  
+        # If the topic feature categorie is activated we need to reconstruct an array
+        # from the sparse values we get out of the DB
         if 'topic' in active_features:
             topic_features = array_from_sparse(eval(str(row[-2])), 150)
             vp_topic_features = array_from_sparse(eval(str(row[-1])), 100)
@@ -161,24 +180,26 @@ def extract_features(data):
     return X
 
 
+# Calculate Y labels for SUCCESS prediction
 def labels_for_success_prediction(data):
     y = []
 
-    # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate, feature1, feature2, feature3, ...
+    # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate ...
     for row in data:
         y.append(row[1])
     return y
 
 
+# Calculate Y labels for TIME prediction
 def labels_for_time_prediction(data):
     y = []
 
-    # Drop the Id field and the y value. This assumes a row looks like this: Id, Finished, StartDate, EndDate, feature1, feature2, feature3, ...
     for row in data:
         y.append(calculate_y_label(row[5]))
     return y
 
 
+# Run the training and store the results on disk for later usage
 if __name__ == "__main__":
     print "Loading data from db ..."
 

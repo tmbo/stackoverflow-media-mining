@@ -178,7 +178,7 @@ def analyze_posts():
             num_questions += 1
     insert_into_tag_post_map(post_tag_cache, write_cursor, writer)
 
-# ========= Main Entry Point ============
+# Analyze all the posts in the DB and calculate the tag statistics and tables
 if __name__ == "__main__":
     prepare_db()
     print "Starting TAG number crunching\n"
