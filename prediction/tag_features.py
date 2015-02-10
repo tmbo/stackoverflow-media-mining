@@ -15,11 +15,11 @@ def log(stats):
 
 
 def number_of_popular_tags(tag_stats, threshold):
-    return reduce(lambda summed, x: summed + (1 if x["Count"] > threshold else 0), tag_stats, 0)
+    return reduce(lambda summed, x: summed + (1 if x[2] > threshold else 0), tag_stats, 0)
 
 
 def tag_popularity(tag_stats):
-    return reduce(lambda summed, x: summed + x["Freq"], tag_stats, 0) / len(tag_stats)
+    return reduce(lambda summed, x: summed + x[3], tag_stats, 0) / len(tag_stats)
 
 
 def num_subscribers(subscribers, key):
@@ -31,8 +31,8 @@ def percentage_subscribers(subscribers, key):
     count = 0
     for sub1 in subscribers: # active or responsive subscribers
         for sub2 in subscribers: # all subscribers
-            if sub1["Tag"] == sub2["Tag"] and sub1[key] != None:
-                sum += sub1[key] / sub2["all_subscribers"]
+            if sub1[0] == sub2[0] and sub1[key] != None:
+                sum += sub1[key] / sub2[1]
                 count += 1
 
 
@@ -40,13 +40,13 @@ def percentage_subscribers(subscribers, key):
 
 
 def min_subscribers(subscribers):
-    min_subscriber = min(subscribers, key=lambda x: x["all_subscribers"])
-    return min_subscriber["all_subscribers"]
+    min_subscriber = min(subscribers, key=lambda x: x[1])
+    return min_subscriber[1]
 
 
 def max_subscribers(subscribers):
-    max_subscriber = max(subscribers, key=lambda x: x["all_subscribers"])
-    return max_subscriber["all_subscribers"]
+    max_subscriber = max(subscribers, key=lambda x: x[1])
+    return max_subscriber[1]
 
 
 def tag_specificity(tags):
@@ -54,16 +54,15 @@ def tag_specificity(tags):
     if tags > 1:
         togetherness = 0
         for tagCombo in itertools.combinations(sorted(tags), 2):
-            togetherness += query_togetherness(tagCombo)["togetherness"]
+            togetherness += query_togetherness(tagCombo)[0]
         return togetherness / len(tags)
     else:
         return 0
 
 
 def calculate_tag_features(tags):
-    tag_stats = query_tag_statistic("tags", tags)
-    tag_subscribers = query_tag_statistic("subscribers_all", tags)
-    print tag_subscribers
+    tag_stats = query_tag_statistic("SO_TAGS", tags)
+    tag_subscribers = query_tag_statistic("SO_TAG_SUBSCRIBERS", tags)
 
     stats = OrderedDict()
 
@@ -73,10 +72,10 @@ def calculate_tag_features(tags):
     stats["num_pop_tags_50"] = number_of_popular_tags(tag_stats, 50)
     stats["num_pop_tags_100"] = number_of_popular_tags(tag_stats, 100)
 
-    stats["num_subs_ans"] = num_subscribers(tag_subscribers, "active_subscribers")
-    stats["percent_subs_ans"] = percentage_subscribers(tag_subscribers, "active_subscribers")
-    stats["num_subs_t"] = num_subscribers(tag_subscribers, "responsive_subscribers")
-    stats["percent_subs_t"] = percentage_subscribers(tag_subscribers, "responsive_subscribers")
+    stats["num_subs_ans"] = num_subscribers(tag_subscribers, 2)
+    stats["percent_subs_ans"] = percentage_subscribers(tag_subscribers, 2)
+    stats["num_subs_t"] = num_subscribers(tag_subscribers, 3)
+    stats["percent_subs_t"] = percentage_subscribers(tag_subscribers, 3)
 
     stats["log_min_tags_subs"] = trunc_log2(min_subscribers(tag_subscribers))
     stats["log_max_tags_subs"] = trunc_log2(max_subscribers(tag_subscribers))
@@ -92,8 +91,8 @@ def calculate_tag_features(tags):
 def query_togetherness(tag_combo):
     try:
         database = Database.from_config()
-        connection, cursor = database.cursor(dictionary=True)
-        cursor.execute("SELECT togetherness FROM tag_combos WHERE tag1=%s AND tag2=%s", tag_combo)
+        connection, cursor = database.cursor()
+        cursor.execute("SELECT togetherness FROM SO_TAG_COMBOS WHERE tag1=%s AND tag2=%s", tag_combo)
         result = cursor.fetchone()
         connection.close()
         return result
@@ -104,7 +103,7 @@ def query_togetherness(tag_combo):
 def query_tag_statistic(table, tags):
     try:
         database = Database.from_config()
-        connection, cursor = database.cursor(dictionary=True)
+        connection, cursor = database.cursor()
         query = "SELECT * FROM %s WHERE " %table
         where_clause = " OR ".join(["Tag='%s'" % tag for tag in tags])
         query += where_clause

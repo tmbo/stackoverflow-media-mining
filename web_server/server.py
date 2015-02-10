@@ -90,7 +90,7 @@ def calculate_features(question, comments):
     processed_body = remove_tags(remove_code(question["body"]))
 
     features = OrderedDict()
-    features["textFeatures"] = text_features.calculate_text_features(question["question_id"], question["body"], question["title"])
+    features["textFeatures"] = text_features.calculate_text_features(question["body"], question["title"])
     features["tagFeatures"] = tag_features.calculate_tag_features(question["tags"])
     features["bountyFeatures"] = bounty_features.calculate_bounty_features(question)
     features["commentFeatures"] = comment_features.calculate_comment_features(comments)
