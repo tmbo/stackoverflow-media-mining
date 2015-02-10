@@ -42,11 +42,11 @@ class SOQuestionCorpus(corpora.TextCorpus):
                                        page_size=self.query_page_size, subsample=self.subsample)
         pool = multiprocessing.Pool(self.processes)
         for page in query_results:
-           for Id, tokens in pool.map(_process_row, page):
-               if tokens:
-                   yield tokens
-               else:
-                   print "ERROR in row %s" % Id
+            for Id, tokens in pool.map(_process_row, page):
+                if tokens:
+                    yield tokens
+                else:
+                    print "ERROR in row %s" % Id
         pool.terminate()
 
 
@@ -70,7 +70,8 @@ class SOQuestionTopicModel(object):
         return "%s/%s.mm" % (base_dir, name)
 
     @staticmethod
-    def train(name, base_dir, tokenizer, num_topics=100, load_corpus_from_file=False, query_page_size=50000, subsample=1.0):
+    def train(name, base_dir, tokenizer, num_topics=100, load_corpus_from_file=False, query_page_size=50000,
+              subsample=1.0):
         if not load_corpus_from_file:
             corpus = SOQuestionCorpus(tokenizer, query_page_size=query_page_size, subsample=subsample)
             print "Storing corpus for %s name..." % name
@@ -82,7 +83,8 @@ class SOQuestionTopicModel(object):
         dictionary = corpora.Dictionary.load(SOQuestionTopicModel.file_for_dict(base_dir, name))
 
         print "Training model for %s" % name
-        model = models.LdaMulticore(corpus=corpus, iterations=50, chunksize=5000, num_topics=num_topics, id2word=dictionary, eval_every=3, workers=5)
+        model = models.LdaMulticore(corpus=corpus, iterations=50, chunksize=5000, num_topics=num_topics,
+                                    id2word=dictionary, eval_every=3, workers=5)
 
         return SOQuestionTopicModel(name, model, dictionary, tokenizer)
 
@@ -116,7 +118,8 @@ def vp_topic_model(name, base_dir="."):
     model = SOQuestionTopicModel.load(name, base_dir, chunker.chunk_text)
     if model is None:
         model = SOQuestionTopicModel.train(
-            name, base_dir, chunker.chunk_text, load_corpus_from_file=True, num_topics=100, query_page_size=1000, subsample=0.2)
+            name, base_dir, chunker.chunk_text, load_corpus_from_file=True, num_topics=100, query_page_size=1000,
+            subsample=0.2)
         model.save_model(base_dir)
     return model
 
@@ -125,16 +128,16 @@ def complete_topic_model(name, base_dir="."):
     model = SOQuestionTopicModel.load(name, base_dir, utils.simple_preprocess)
     if model is None:
         model = SOQuestionTopicModel.train(whole_name, utils.simple_preprocess, load_corpus_from_file=True,
-                                                 num_topics=150, query_page_size=1000, subsample=1.0)
+                                           num_topics=150, query_page_size=1000, subsample=1.0)
         model.save(base_dir)
     return model
 
 
 if __name__ == "__main__":
     base_dir = "output/ldas2"
-    
+
     ensure_folder_exists(base_dir)
-    
+
     whole_name = "whole_question"
     vp_name = "vp_question"
 
