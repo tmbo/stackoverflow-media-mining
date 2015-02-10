@@ -54,7 +54,7 @@ WHERE EXISTS(
 );
 
 
-DROP TABLE SO_BOUNTIES;
+DROP TABLE SO_BOUNTIES_DELETE;
 
 -- Wrongly ordered bounty events
 DELETE

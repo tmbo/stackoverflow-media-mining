@@ -38,7 +38,7 @@ class SOQuestionCorpus(corpora.TextCorpus):
         global tokenizer
         tokenizer = self.tokenizer
         db = Database.from_config()
-        query_results = db.paged_query(select="Body", from_="posts", where="PostTypeId=1",
+        query_results = db.paged_query(select="Body", from_="SO_POSTS", where="PostTypeId=1",
                                        page_size=self.query_page_size, subsample=self.subsample)
         pool = multiprocessing.Pool(self.processes)
         for page in query_results:

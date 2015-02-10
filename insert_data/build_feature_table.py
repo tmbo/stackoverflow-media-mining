@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from ordereddict import OrderedDict
 import re, sys, os
 from database import Database
 from prediction.text_features import *
