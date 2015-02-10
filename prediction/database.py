@@ -73,6 +73,7 @@ class Database(object):
             print "Database ERROR: "
             print err
             db.close()
+            raise err
             print "Rec call: "
             for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample):
                 yield r
