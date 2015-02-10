@@ -49,12 +49,12 @@ class Database(object):
         is_empty = False
         _where = "WHERE " + where if where is not None else ""
         _select = ", " + select if select is not None else ""
-        query_template = "SELECT %sId %s FROM %s %s AND Id > %d ORDER BY Id ASC LIMIT %d"
+        query_template = "SELECT %sId %s FROM %s %s AND %sId > %d ORDER BY %sId ASC LIMIT %d"
         try:
             con, cur = self.cursor()
             while not is_empty:
-                print "Running query: %s" % query_template % (_prefix, _select, from_, _where, last_id, page_size)
-                cur.execute(query_template % (_prefix, _select, from_, _where, last_id, page_size))
+                print "Running query: %s" % query_template % (_prefix, _select, from_, _where, _prefix, last_id, _prefix, page_size)
+                cur.execute(query_template % (_prefix, _select, from_, _where, _prefix, last_id, _prefix, page_size))
                 results = cur.fetchall()
                 # print "Fetched results."
 
