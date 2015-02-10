@@ -131,7 +131,7 @@ def complete_topic_model(name, base_dir="."):
 
 
 if __name__ == "__main__":
-    base_dir = "../output/ldas"
+    base_dir = "../output/ldas2"
     
     ensure_folder_exists(base_dir)
     

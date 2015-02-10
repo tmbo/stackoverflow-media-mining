@@ -1,10 +1,9 @@
 import ConfigParser
 import os
-import glob
 from multiprocessing import Pool
 from data_converter.xml2sql import xml2sql
 from prediction.database import Database
-from data_converter.import_into_db import execute_sql_from_file, execute_sql_from_large_file
+from data_converter.import_into_db import execute_sql_from_file
 
 BASE_FOLDER = "output"
 

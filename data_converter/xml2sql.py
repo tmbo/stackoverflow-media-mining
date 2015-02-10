@@ -104,5 +104,3 @@ class xml2sql:
                 # accessed
                 elem.clear()
                 root.clear()
-
-        self._write_buffer()  # write rest of the buffer to file
