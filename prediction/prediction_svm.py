@@ -10,7 +10,7 @@ from sklearn.grid_search import GridSearchCV
 from database import Database
 from utils import array_from_sparse, ensure_folder_exists
 
-name_of_feature_table = "training_features"
+name_of_feature_table = "SO_TRAINING_FEATURES"
 
 train_size = 20000
 test_size = 1000
@@ -182,7 +182,7 @@ def labels_for_time_prediction(data):
 if __name__ == "__main__":
     print "Loading data from db ..."
 
-    base_dir = "../output/svms"
+    base_dir = "output/svms"
 
     ensure_folder_exists(base_dir)
 
