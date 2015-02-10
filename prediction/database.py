@@ -73,7 +73,7 @@ class Database(object):
             print err
             con.close()
             print "Rec call: "
-            for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample, id_prefix=None):
+            for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample, id_prefix=id_prefix):
                 yield r
         else:
             con.close()
