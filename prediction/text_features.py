@@ -60,7 +60,6 @@ def number_of_action_verbs(text):
 
 
 def log(stats):
-    print "PostID: ", stats["postId"]
     print "Number of Code Snippets : ", stats["num_code_snippet"]
     print "Number of Images: ", stats["num_images"]
     print "Total Length of Code : ", stats["code_len"]
@@ -73,7 +72,7 @@ def log(stats):
     print "-----------------------------------------"
 
 
-def calculate_text_features(postId, body, title):
+def calculate_text_features(body, title):
     stats = OrderedDict()
 
     # calculate all code-based features with HTML tags still intact
