@@ -7,8 +7,32 @@ import java.text.{SimpleDateFormat, DateFormat}
 import java.util.{TimeZone, Date}
 
 import scala.io.Source
+import scala.xml.XML
+import scala.xml.XML
 import scala.xml.{Node, XML}
 
+/**
+ * This is a stackoverflow datetime crawler. It is not pretty nor convenient
+ * but it does it's job. The SO dump contains some timestamps that are
+ * anonymized, e.g. 2014-06-23 00:00:00. The time is not included in those
+ * timestamps. Luckily we can crawl those timestamps from the SO website.
+ * 
+ * INPUT:
+ *  - the stackoverflow dump votes xml in output/stackoverflow-data/Votes.xml
+ *  - a csv of end bounty dates in output/end_bounties.csv with should be a
+ *    dump of the SO_END_BOUNTIES table
+ *    
+ * OUTPUT:
+ *  - a csv file `output/output-start.csv` containing the corrected bounty start date timestamps 
+ *    format: <id>,<corrected_start_time>,<original_time>
+ *    The id field corresponds to the id of the bounty the timestamp belongs to
+ *  
+ *  - a csv file `output/output-end.csv` containing the corrected bounty end date timestamps 
+ *    format: <id>,<corrected_end_time>,<original_time>
+ *    The id field corresponds to the id of the bounty the timestamp belongs to   
+ *    
+ *  The output csv files can be imported into a DB and used to update the SO_BOUNTIES table
+ */
 object DataCrawler {
   val base_dir = "../output"
   
@@ -18,7 +42,7 @@ object DataCrawler {
   }
 
   def processStartBounties = {
-    val outputFile = "output.csv"
+    val outputFile = "../output/output-start.csv"
 
     val bounties = XML.loadFile(s"$base_dir/stackoverflow-data/Votes.xml")
 
@@ -68,9 +92,9 @@ object DataCrawler {
       else
         a(i)
 
-    val outputFile = "output-end.csv"
+    val outputFile = "../output/output-end.csv"
 
-    val bounties = Source.fromFile("../assets/end_bounties.csv")
+    val bounties = Source.fromFile("../output/end_bounties.csv")
 
     var failed = List.empty[(Int, String, String, String, String)]
 
