@@ -175,7 +175,7 @@ def analyze_posts():
                     del post_tag_cache[:]
                     print "%d. %d s %s" % (num_questions, (int(time.time()) - start_time), tags)
 
-        num_questions += 1
+            num_questions += 1
     insert_into_tag_post_map(post_tag_cache, write_cursor, writer)
 
 # ========= Main Entry Point ============
