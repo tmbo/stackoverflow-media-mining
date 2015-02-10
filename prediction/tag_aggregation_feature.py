@@ -151,31 +151,32 @@ def analyze_posts():
     
     post_tag_cache_id = 1
 
-    for row in db.paged_query(select="Tags", from_="SO_POSTS", where="ParentId is null"):
-        print "TAG STRING '%s'" % row
-        tag_string = row[1]
-        if tag_string is not None:
-            print "TAG STRING '%s'" % tag_string
-            print "TAG STRING TYPE '%s'" % type(tag_string)
-            tags = TAG_EXTRACTOR.findall(tag_string)
+    for rows in db.paged_query(select="Tags", from_="SO_POSTS", where="ParentId is null"):
+        for row in rows:
+            print "TAG STRING '%s'" % row
+            tag_string = row[1]
+            if tag_string is not None:
+                print "TAG STRING '%s'" % tag_string
+                print "TAG STRING TYPE '%s'" % type(tag_string)
+                tags = TAG_EXTRACTOR.findall(tag_string)
 
-            for tag in tags:
-                tag_counter[tag] = 1 + tag_counter.get(tag, 0)
-                if tag in tag_ids:
-                    tag_id = tag_ids[tag]
-                else:
-                    tag_id = len(tag_ids) + 1
-                    tag_ids[tag] = tag_id
-                post_tag_cache.append((post_tag_cache_id, tag_id, row[0]))
-                post_tag_cache_id += 1
+                for tag in tags:
+                    tag_counter[tag] = 1 + tag_counter.get(tag, 0)
+                    if tag in tag_ids:
+                        tag_id = tag_ids[tag]
+                    else:
+                        tag_id = len(tag_ids) + 1
+                        tag_ids[tag] = tag_id
+                    post_tag_cache.append((post_tag_cache_id, tag_id, row[0]))
+                    post_tag_cache_id += 1
 
-            for tag_combo in itertools.combinations(sorted(tags), 2):
-                tag_combos_counter[tag_combo] = 1 + tag_combos_counter.get(tag_combo, 0)
+                for tag_combo in itertools.combinations(sorted(tags), 2):
+                    tag_combos_counter[tag_combo] = 1 + tag_combos_counter.get(tag_combo, 0)
 
-            if num_questions % 2000 == 0:
-                insert_into_tag_post_map(post_tag_cache, write_cursor, writer)
-                del post_tag_cache[:]
-                print "%d. %d s %s" % (num_questions, (int(time.time()) - start_time), tags)
+                if num_questions % 2000 == 0:
+                    insert_into_tag_post_map(post_tag_cache, write_cursor, writer)
+                    del post_tag_cache[:]
+                    print "%d. %d s %s" % (num_questions, (int(time.time()) - start_time), tags)
 
         num_questions += 1
     insert_into_tag_post_map(post_tag_cache, write_cursor, writer)
