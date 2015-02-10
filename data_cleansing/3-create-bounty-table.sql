@@ -12,13 +12,6 @@ CREATE TABLE SO_START_BOUNTIES (
 
 CREATE INDEX "start_bounties_1" ON SO_START_BOUNTIES (PostId);
 
-CREATE TABLE SO_START_CORRECTED (
-  Id          INT NOT NULL,
-  CreatedTime DATETIME DEFAULT NULL,
-  CreatedDate DATETIME DEFAULT NULL,
-  PRIMARY KEY (Id)
-);
-
 INSERT INTO SO_START_BOUNTIES (id, PostId, VoteTypeId, UserId, CreationDate, BountyAmount)
   SELECT *
   FROM SO_VOTES AS votes
@@ -41,13 +34,6 @@ CREATE TABLE SO_END_BOUNTIES (
 );
 
 CREATE INDEX "end_bounties_idx_2" ON SO_END_BOUNTIES (PostId);
-
-CREATE TABLE SO_END_CORRECTED (
-  Id          INT NOT NULL,
-  CreatedTime DATETIME DEFAULT NULL,
-  CreatedDate DATETIME DEFAULT NULL,
-  PRIMARY KEY (Id)
-);
 
 INSERT INTO SO_END_BOUNTIES (id, PostId, VoteTypeId, UserId, CreationDate, BountyAmount)
   SELECT
