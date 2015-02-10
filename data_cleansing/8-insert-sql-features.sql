@@ -125,7 +125,7 @@ FROM SO_TRAINING_FEATURES
     SELECT
       b.Id, Count(comment.Id) as num_comments, SUM(LENGTH(comment.Text)) as len_comments
     FROM SO_BOUNTIES b, SO_COMMENTS comment
-    WHERE b.QuestionId = comment.PostId
+    WHERE b.QuestionId = comment.PostId AND comment.Creationdate < b.StartDate
     GROUP BY b.Id
   ) AS X ON X.Id = SO_TRAINING_FEATURES.Id;
 

@@ -38,6 +38,3 @@ python insert_data/insert_data.py
 
 echo "~~~~~ STEP 4: CREATE ADDITIONAL TAG TABLES"
 python prediction/tag_aggregation_features.py
-
-echo "~~~~~ STEP 4: CRAWL MISSING DATES"
-# TODO: convert code to python from scala
