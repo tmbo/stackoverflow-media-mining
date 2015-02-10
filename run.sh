@@ -33,7 +33,7 @@ done
 rm -rf *.7z
 cd ../..
 
-echo "~~~~~ STEP 3: CONVERT DATA XML -> SQL"
+echo "~~~~~ STEP 3: INSERT DATA INTO HANA"
 python runner/convert_data.py
 
 echo "~~~~~ STEP 4: "
