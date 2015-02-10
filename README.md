@@ -8,6 +8,19 @@ The project consists of several parts:
 3. Code to calculated features and train a topic model (LDA) and a SVM, which will serve as the knowledge base for the web server.
 4. A Web Server to enter questions and receive a prediction as output.
 
+Content of the repository:
+
+| Path                  |                                                                                                                                                                         |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `data_cleansing/`     | SQL scripts to clean the SO dump from inconsistencies. Furthermore, create additional tables with condensed information.                                                |
+| `data_converter/`     | Python scripts to read XML data dumps and yield them as batched rows.                                                                                                   |
+| `data_crawling/`      | Scala script to request timestamps from the SO API that are not contained in the original data dump. The training process needs the data to be as accurate as possible. |
+| `feature_analysis/`   | R scripts to analyze the data and generate plots.                                                                                                                       |
+| `hana_nodejs_import/` | Deprecated HANA nodejs importer. This script got replaced by `insert_data`                                                                                              |
+| `insert_data/`        | Python script to bulk write `INSERT` statements to HANA.                                                                                                                |
+| `prediction/`         | Python code to calculate features, train topic models and train a SVM classifier                                                                                        |
+| `web_server/`         | Python web server that uses a trained SVM to do live predictions.                                                                                                       |
+
 ## Setup and prediction Training
 
 ### 0. Requirements

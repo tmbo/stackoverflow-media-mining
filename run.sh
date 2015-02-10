@@ -34,6 +34,6 @@ rm -rf *.7z
 cd ../..
 
 echo "~~~~~ STEP 3: INSERT DATA INTO HANA"
-python runner/convert_data.py
+python insert_data/insert_data.py
 
 echo "~~~~~ STEP 4: "
