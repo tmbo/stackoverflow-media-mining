@@ -21,7 +21,6 @@ def create_tags_table(cursor, writer):
           Count INT    NOT NULL,
           Freq  DOUBLE NOT NULL
         )""")
-        writer.commit()
     except Exception:
         return
 
@@ -35,7 +34,6 @@ def create_tag_combos_table(cursor, writer):
           Count        INT    NOT NULL,
           Togetherness DOUBLE NOT NULL
         )""")
-        writer.commit()
     except Exception:
         return
 
@@ -43,18 +41,19 @@ def create_tag_combos_table(cursor, writer):
 def empty_tag_post_table(cursor, writer):
     try:
         cursor.execute("""TRUNCATE TABLE SO_TAG_POSTS""")
-        writer.commit()
     except Exception:
         return
 
 
 def create_tag_post_table(cursor, writer):
-    cursor.execute("""CREATE TABLE SO_TAG_POSTS (
-      Id int NOT NULL PRIMARY KEY,
-      TagId int,
-      PostId int
-    )""")
-    writer.commit()
+    try:
+        cursor.execute("""CREATE TABLE SO_TAG_POSTS (
+          Id int NOT NULL PRIMARY KEY,
+          TagId int,
+          PostId int
+        )""")
+    except Exception:
+        return
 
 
 def insert_into_tags(data, cursor, writer):
