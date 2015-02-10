@@ -28,6 +28,38 @@ FROM SO_TRAINING_FEATURES
     WHERE b.QuestionId = question.Id
   ) AS A ON A.Id = SO_TRAINING_FEATURES.Id;
 
+-- Calculate Answer Date and Duration
+
+UPDATE SO_TRAINING_FEATURES
+SET AnswerDate   = answer_date,
+  answer_duration = SECONDS_BETWEEN(SO_TRAINING_FEATURES.StartDate, answer_date) / 60
+FROM SO_TRAINING_FEATURES
+  JOIN
+  (
+    SELECT
+      b.Id                AS ID,
+      answer.CreationDate AS answer_date
+    FROM SO_BOUNTIES b, SO_POSTS answer
+    WHERE b.AnswerId != b.QuestionId AND
+          b.AnswerId = answer.Id AND
+          b.StartDate < answer.CreationDate
+  ) AS X ON X.Id = SO_TRAINING_FEATURES.Id;
+
+-- Flag if answer was edited and therefore created before the bounty start
+
+UPDATE SO_TRAINING_FEATURES
+SET answer_was_edited = TRUE
+FROM SO_TRAINING_FEATURES
+  JOIN
+  (
+    SELECT
+      b.Id                AS ID
+    FROM SO_BOUNTIES b, SO_POSTS answer
+    WHERE b.AnswerId != b.QuestionId AND
+          b.AnswerId = answer.Id AND
+          b.StartDate >= answer.CreationDate
+  ) AS X ON X.Id = SO_TRAINING_FEATURES.Id;
+
 -- Calculate success feature
 
 UPDATE SO_TRAINING_FEATURES
@@ -78,6 +110,3 @@ FROM SO_TRAINING_FEATURES
     WHERE b.QuestionId = v.PostId AND v.VoteTypeId = 3 AND v.CreationDate < b.StartDate
     GROUP BY b.Id
   ) AS DOWN ON DOWN.Id = SO_TRAINING_FEATURES.Id;
-
-
-
