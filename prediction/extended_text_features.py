@@ -63,8 +63,7 @@ if __name__ == "__main__":
                             question.Body
                           FROM SO_BOUNTIES b, SO_POSTS question
                           WHERE
-                            b.QuestionId = question.Id
-                          LIMIT 2""")
+                            b.QuestionId = question.Id""")
 
         print "Fetching questions..."
         rows = cursor.fetchall()
