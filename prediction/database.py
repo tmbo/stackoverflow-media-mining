@@ -52,7 +52,7 @@ class Database(object):
         try:
             con, cur = self.cursor()
             while not is_empty:
-                print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
+                # print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
                 cur.execute(query_template % (_select, from_, _where, last_id, page_size))
                 results = cur.fetchall()
                 # print "Fetched results."
@@ -71,7 +71,6 @@ class Database(object):
             print "Database ERROR: "
             print err
             con.close()
-            raise err
             print "Rec call: "
             for r in self.paged_query(select, from_, where, last_id, page_size, subsample=subsample):
                 yield r
