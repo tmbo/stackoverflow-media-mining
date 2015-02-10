@@ -50,10 +50,7 @@ class Database(object):
         _select = ", " + select if select is not None else ""
         query_template = "SELECT Id %s FROM %s %s AND Id > %d ORDER BY Id ASC LIMIT %d"
         try:
-            print "Creating connection..."
-            print "Creating cursor..."
             con, cur = self.cursor()
-            print "Running loop..."
             while not is_empty:
                 print "Running query: %s" % query_template % (_select, from_, _where, last_id, page_size)
                 cur.execute(query_template % (_select, from_, _where, last_id, page_size))

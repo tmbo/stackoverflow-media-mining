@@ -152,8 +152,11 @@ def analyze_posts():
     post_tag_cache_id = 1
 
     for row in db.paged_query(select="Tags", from_="SO_POSTS", where="ParentId is null"):
+        print "TAG STRING '%s'" % row
         tag_string = row[1]
         if tag_string is not None:
+            print "TAG STRING '%s'" % tag_string
+            print "TAG STRING TYPE '%s'" % type(tag_string)
             tags = TAG_EXTRACTOR.findall(tag_string)
 
             for tag in tags:
