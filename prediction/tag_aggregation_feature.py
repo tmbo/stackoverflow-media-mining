@@ -97,7 +97,7 @@ def write_results_to_db():
         tag_data = []
         idx = 1
         for tag, count in tag_counter.iteritems():
-            tag_data.append((idx, tag_ids[tag], tag, count, 1.0 * count / num_questions))
+            tag_data.append((tag_ids[tag], tag, count, 1.0 * count / num_questions))
             idx += 1
             if len(tag_data) >= 5000:
                 insert_into_tags(tag_data, write_cursor, writer)
