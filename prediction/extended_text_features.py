@@ -109,7 +109,8 @@ if __name__ == "__main__":
         print "Done"
 
     except Exception as err:
-            print("An exception occoured: " + err)
+            print "An exception occoured: "
+            print err
     else:
         cnx.close()
 
