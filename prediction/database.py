@@ -17,7 +17,7 @@ class Database(object):
 
     # Load the database settings from file
     @staticmethod
-    def from_config(file_name='application.cfg'):
+    def from_config(file_name='../application.cfg'):
         config = ConfigParser.RawConfigParser()
         scriptDir = os.path.dirname(os.path.realpath(__file__))
         configDir = os.path.join(scriptDir, file_name)
