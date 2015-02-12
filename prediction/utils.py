@@ -8,6 +8,17 @@ PRE_RE = re.compile(r'<pre>(.*?)</pre>', re.DOTALL)
 CODE_RE = re.compile(r'<code>(.*?)</code>', re.DOTALL)
 
 
+def _ctoi(c):
+    if type(c) == type(""):
+        return ord(c)
+    else:
+        return c
+
+
+def isdigit(c): 
+    return 57 >= _ctoi(c) >= 48 
+
+
 def remove_tags(text):
     return TAG_RE.sub('', text)
 

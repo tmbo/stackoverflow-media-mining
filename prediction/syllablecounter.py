@@ -1,6 +1,6 @@
 import re
-from curses.ascii import isdigit
 from nltk.corpus import cmudict
+from utils import isdigit
 
 # This class is used to count the syllables of a given text.
 class CMUSyllables(object):
