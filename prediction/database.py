@@ -32,10 +32,11 @@ class Database(object):
                                            database=self.database,
                                            host=self.host)
         elif self.db_type == "hana":
-            import jaydebeapi
-            return jaydebeapi.connect("com.sap.db.jdbc.Driver",
-                                 ['jdbc:sap://'+self.host+':'+self.port, self.user, self.password],
-                                 '../libs/ngdbc.jar')
+            import dbapi
+            return dbapi.connect(address=self.host,
+                                 port=int(self.port),
+                                 user=self.user,
+                                 password=self.password)
         else:
             raise Exception("Unknown database type setting in application configuration.")
 
