@@ -33,7 +33,9 @@ sudo easy_install gensim
 
 sudo easy_install scipy
 
-sudo easy install numpy
+sudo easy_install numpy
+
+sudo easy_install JayDeBeApi
 
 sudo easy_install python-dateutil
 
