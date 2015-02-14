@@ -62,12 +62,7 @@ if __name__ == "__main__":
         print "Starting number crunching\n"
 
         cursor = cnx.cursor()
-        cursor.execute("""SELECT
-                            b.Id,
-                            question.Body
-                          FROM SO_BOUNTIES b, SO_POSTS question
-                          WHERE
-                            b.QuestionId = question.Id""")
+        cursor.execute("""SELECT b.Id, question.Body FROM SO_BOUNTIES b, SO_POSTS question WHEREb.QuestionId = question.Id""")
 
         print "Fetching questions..."
         rows = cursor.fetchall()

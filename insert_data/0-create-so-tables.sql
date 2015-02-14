@@ -36,7 +36,7 @@ CREATE TABLE SO_POSTS (
   ParentId         INT      DEFAULT NULL,
   Score            INT      DEFAULT NULL,
   ViewCount        INT      DEFAULT NULL,
-  Body             CLOB,
+  Body             BLOB,
   OwnerUserId      INT      DEFAULT NULL,
   LastEditorUserId INT      DEFAULT NULL,
   LastEditDate     DATETIME DEFAULT NULL,
