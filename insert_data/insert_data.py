@@ -38,9 +38,13 @@ def import_xml_into_db(data):
         input_fields=fields,
         timestamps=timestamps)
     
+    counter = 0
+    
     for batch in result:    
         sql_insert = 'INSERT INTO %s (%s) VALUES (%s)' % (table, ','.join(fields), ', '.join(['?']*len(fields)))
         cursor.executemany(sql_insert, batch)
+        counter += len(batch)
+        print "Finished %d" % counter
     
     connection.close()    
 
