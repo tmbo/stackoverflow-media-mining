@@ -13,14 +13,14 @@ var path = require("path"),
 
 // HANA Credentials
 var client = hdb.createClient({
-  host     : "141.89.225.134",
+  host     : "192.168.42.38",
   port     : 30315,
   user     : "SMA1415",
   password : "Popcorn54"
 });
 
 // Path to Stackoverlflow XML dump
-var DATA_DIR = __dirname + "/../"
+var DATA_DIR = "/Users/therold/Downloads/stackoverflow/" //__dirname + "/../"
 
 // Buffer size for bulk send operation over the network
 var SEND_SIZE = 1000
@@ -31,7 +31,7 @@ var READ_BUFFER_SIZE = 50 * SEND_SIZE
 var readCounter = 0;
 
 function readXML(fileName, statement, schemaFunc) {
-  var stream = fs.createReadStream(path.join(DATA_DIR, fileName)),
+  var stream = fs.createReadStream(fileName); //path.join(DATA_DIR, fileName)),
       buffer = [],
       xml = new XmlStream(stream, "utf-8");
 
@@ -66,7 +66,7 @@ function readXML(fileName, statement, schemaFunc) {
 }
 
 
-function importBadges(statement) {
+function importBadges() {
   console.log("Importing Badges...")
   var SQLQuery = "INSERT INTO SO_BADGES (ID, USERID, NAME, CREATIONDATE) VALUES (?, ?, ?, ?)"
   connectToDB(SQLQuery).then(function(statement) {
@@ -82,7 +82,7 @@ function importBadges(statement) {
 }
 
 
-function importComments(statement) {
+function importComments() {
   console.log("Importing Comments...")
   var SQLQuery = "INSERT INTO SO_COMMENTS (ID, POSTID, SCORE, TEXT, CREATIONDATE, USERID) VALUES (?, ?, ?, ?, ?, ?)"
   connectToDB(SQLQuery).then(function(statement) {
@@ -99,12 +99,36 @@ function importComments(statement) {
   })
 }
 
-
-function importPosts(statement) {
-  console.log("Importing Posts...")
-  var SQLQuery = "INSERT INTO SO_POSTS (ID, POSTTYPEID, ACCEPTEDANSWERID, PARENTID, SCORE, VIEWCOUNT, BODY, OWNERUSERID, LASTEDITORUSERID, LASTEDITDATE, LASTACTIVITYDATE, TITLE, TAGS, ANSWERCOUNT, COMMENTCOUNT, FAVORITECOUNT, CREATIONDATE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+function importUsers() {
+  console.log("Importing Users...")
+  var SQLQuery = "INSERT INTO SO_USERS (ID, REPUTATION, CREATIONDATE, DISPLAYNAME, LASTACCESSDATE, VIEWS, WEBSITEURL, LOCATION, ABOUTME, AGE, UPVOTES, DOWNVOTES, EMAILHASH) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   connectToDB(SQLQuery).then(function(statement) {
-    readXML("Posts.xml", statement, function(node) {
+    readXML("Users.xml", statement, function(node) {
+      return [
+        node.$.Id,
+        node.$.Reputation,
+        node.$.CreationDate,
+        node.$.DisplayName,
+        node.$.LastAccessDate,
+        node.$.Views,
+        node.$.WebsiteUrl,
+        node.$.Location,
+        node.$.AboutMe,
+        node.$.Age,
+        node.$.UpVotes,
+        node.$.DownVotes,
+        node.$.EmailHash
+      ]
+    })
+  })
+}
+
+
+function importPosts(fileName) {
+  console.log("Importing Posts...")
+  var SQLQuery = "INSERT INTO SO_POSTS (ID, POSTTYPEID, ACCEPTEDANSWERID, PARENTID, SCORE, VIEWCOUNT, BODY, OWNERUSERID, LASTEDITORUSERID, LASTEDITDATE, LASTACTIVITYDATE, TITLE, TAGS, ANSWERCOUNT, COMMENTCOUNT, FAVORITECOUNT, CREATIONDATE) VALUES (?, ?, ?, ?, ?, ?, TO_BLOB(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  connectToDB(SQLQuery).then(function(statement) {
+    readXML(fileName, statement, function(node) {
       return [
         node.$.Id,
         node.$.PostTypeId,
@@ -112,7 +136,7 @@ function importPosts(statement) {
         node.$.ParentId,
         node.$.Score,
         node.$.ViewCount,
-        node.$.Body,
+        new Buffer(node.$.Body),
         node.$.OwnerUserId,
         node.$.LastEditorUserId,
         node.$.LastEditDate,
@@ -195,8 +219,11 @@ function connectToDB(SQLQuery) {
 // Only run one import at a time
 // #######################################
 
+fileName = process.argv[2]
+console.log(fileName)
+
 //importBadges()
 //importComments()
-importPosts()
+importPosts(fileName)
 //importVotes()
-
+//importUsers()
