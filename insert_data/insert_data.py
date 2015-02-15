@@ -48,7 +48,7 @@ def import_xml_into_db(data):
 def create_db_tables():
     connection, cursor = database.cursor()
     print "Creating stackoverflow tables..."
-    execute_sql_from_file("runner/0-create-so-tables.sql", cursor)
+    execute_sql_from_file("insert_data/0-create-so-tables.sql", cursor)
     cursor.close()
     connection.close()
 
