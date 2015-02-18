@@ -4,6 +4,7 @@ from chunking import TextChunker
 import logging
 import multiprocessing
 from utils import *
+from csv_reader import read_csv
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -14,18 +15,19 @@ def _process_row(row):
     if row[1] is None:
         return row[0], []
     else:
-        return row[0], list(tokenizer(remove_tags(remove_code(row[1].encode("utf-8")))))
-
+        # return row[0], list(tokenizer(remove_tags(remove_code(row[1].encode("utf-8")))))
+        return row[0], list(tokenizer(remove_tags(remove_code(row[1]))))
 
 class SOQuestionCorpus(corpora.TextCorpus):
-    def __init__(self, tokenizer, processes=None, query_page_size=50000, subsample=1.0):
+    def __init__(self, tokenizer, processes=None, query_page_size=50000, subsample=1.0, limit=None):
         self.tokenizer = tokenizer
         self.processes = processes
         self.subsample = subsample
+        self.limit = limit
         self.query_page_size = query_page_size
         print "Creating dictionary..."
         super(SOQuestionCorpus, self).__init__(input=True)
-        self.dictionary.filter_extremes(no_below=3, no_above=0.2)
+        self.dictionary.filter_extremes(no_below=5, no_above=0.3)
 
     def get_texts(self):
         return self.question_body_stream()
@@ -34,21 +36,33 @@ class SOQuestionCorpus(corpora.TextCorpus):
     def pre_process(body):
         return remove_tags(remove_code(body))
 
+    # def question_body_stream(self):
+    #     global tokenizer
+    #     tokenizer = self.tokenizer
+    #     db = Database.from_config()
+    #     query_results = db.paged_query(select="Body", from_="SO_POSTS", where="PostTypeId=1",
+    #                                    page_size=self.query_page_size, subsample=self.subsample)
+    #     pool = multiprocessing.Pool(self.processes)
+    #     for page in query_results:
+    #         for Id, tokens in pool.map(_process_row, page):
+    #             if tokens:
+    #                 yield tokens
+    #             else:
+    #                 print "ERROR in row %s" % Id
+    #     pool.terminate()
+    
     def question_body_stream(self):
         global tokenizer
         tokenizer = self.tokenizer
-        db = Database.from_config()
-        query_results = db.paged_query(select="Body", from_="SO_POSTS", where="PostTypeId=1",
-                                       page_size=self.query_page_size, subsample=self.subsample)
+        csv = read_csv("../output/stackoverflow-data/posts.csv", set(["Id", "Body"]), subsample=self.subsample, limit=self.limit)
         pool = multiprocessing.Pool(self.processes)
-        for page in query_results:
+        for page in grouper(50000, csv):
             for Id, tokens in pool.map(_process_row, page):
                 if tokens:
                     yield tokens
                 else:
                     print "ERROR in row %s" % Id
         pool.terminate()
-
 
 class SOQuestionTopicModel(object):
     def __init__(self, name, model, dictionary, tokenizer):
@@ -71,9 +85,9 @@ class SOQuestionTopicModel(object):
 
     @staticmethod
     def train(name, base_dir, tokenizer, num_topics=100, load_corpus_from_file=False, query_page_size=50000,
-              subsample=1.0):
+              subsample=1.0, limit=None):
         if not load_corpus_from_file:
-            corpus = SOQuestionCorpus(tokenizer, query_page_size=query_page_size, subsample=subsample)
+            corpus = SOQuestionCorpus(tokenizer, query_page_size=query_page_size, subsample=subsample, limit=limit)
             print "Storing corpus for %s name..." % name
             corpora.MmCorpus.serialize(SOQuestionTopicModel.file_for_corpus(base_dir, name), corpus, progress_cnt=10000)
             print "Storing dictionary for %s..." % name
@@ -113,13 +127,13 @@ class SOQuestionTopicModel(object):
 
 
 def vp_topic_model(name, base_dir="."):
-    chunker = TextChunker(stem_chunks=False)
+    chunker = TextChunker(stem_chunks=True)
     chunker.train()
     model = SOQuestionTopicModel.load(name, base_dir, chunker.chunk_text)
     if model is None:
         model = SOQuestionTopicModel.train(
-            name, base_dir, chunker.chunk_text, load_corpus_from_file=True, num_topics=100, query_page_size=1000,
-            subsample=0.2)
+            name, base_dir, chunker.chunk_text, load_corpus_from_file=False, num_topics=100, query_page_size=1000,
+            subsample=0.1, limit=10000)
         model.save_model(base_dir)
     return model
 
@@ -127,7 +141,7 @@ def vp_topic_model(name, base_dir="."):
 def complete_topic_model(name, base_dir="."):
     model = SOQuestionTopicModel.load(name, base_dir, utils.simple_preprocess)
     if model is None:
-        model = SOQuestionTopicModel.train(whole_name, utils.simple_preprocess, load_corpus_from_file=True,
+        model = SOQuestionTopicModel.train(whole_name, base_dir, utils.simple_preprocess, load_corpus_from_file=False,
                                            num_topics=150, query_page_size=1000, subsample=1.0)
         model.save(base_dir)
     return model
@@ -141,6 +155,6 @@ if __name__ == "__main__":
     whole_name = "whole_question"
     vp_name = "vp_question"
 
-    complete_topic_model(vp_name, base_dir)
+    # complete_topic_model(vp_name, base_dir)
 
     vp_topic_model(vp_name, base_dir)

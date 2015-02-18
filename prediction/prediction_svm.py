@@ -5,7 +5,7 @@ import numpy as np
 from operator import itemgetter
 from sklearn.externals import joblib
 import time
-from sklearn.metrics import roc_auc_score, precision_recall_fscore_support
+from sklearn.metrics import f1_score, roc_auc_score, precision_recall_fscore_support
 from sklearn.grid_search import GridSearchCV
 from database import Database
 from utils import array_from_sparse, ensure_folder_exists
@@ -14,19 +14,19 @@ from utils import array_from_sparse, ensure_folder_exists
 name_of_feature_table = "SO_TRAINING_FEATURES"
 
 # Number of entries used for training and testing for both models
-train_size = 20000
-test_size = 1000
+train_size = 40000
+test_size = 3000
 
 # Decision boundary for time training SVM. Value in hours
 time_y_limit = (24 * 2.5)
 
 # Only features categories listed here will be used for training
 active_features = [
-    'text',
-    'tags',
-    'comments',
-    'linguistic',
-    'bounty',
+    # 'text',
+    # 'tags',
+    # 'comments',
+    # 'linguistic',
+    # 'bounty',
     'topic'
 ]
 
@@ -107,8 +107,8 @@ def train_svm(unscaled_X, y, name, expl=""):
     prediction = clf.predict(X_test)
     precision, recall, fbeta, support = precision_recall_fscore_support(y_test, prediction)
     print "Scoring Finish-SVM on TEST data ..."
-    print "%s-Trainings Accuracy: %f precision: %s recall: %s F1-score: %s support: %s ROC: %f" % (
-        name, clf.score(X_test, y_test), precision, recall, fbeta, support, roc_auc_score(y_test, prediction))
+    print "%s-Trainings Accuracy: %f precision: %s recall: %s F1-score: %s support: %s ROC: %f F1: %f" % (
+        name, clf.score(X_test, y_test), precision, recall, fbeta, support, roc_auc_score(y_test, prediction), f1_score(y_test, prediction))
 
     return clf, scaler
 
