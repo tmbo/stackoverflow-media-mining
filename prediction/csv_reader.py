@@ -20,5 +20,5 @@ def read_csv(filename, included_column_names, subsample=1.0, limit=None):
                 count = 0
             else:
                 count += 1
-            if yield_count >= limit:
+            if limit is not None and yield_count >= limit:
                 return
