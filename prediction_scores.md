@@ -4,7 +4,7 @@ Finish-Trainings Accuracy:  0.643000 F1-score: 0.781918 ROC: 0.502632
 
 [topic]
 Time-Trainings Accuracy:    0.564000 F1-score: 0.716515 ROC: 0.494425
-Finish-Trainings Accuracy:  0.650000 F1-score: 0.782067 ROC: 0.519823
+Finish-Trainings Accuracy:  0.645000 F1-score: 0.783581 ROC: 0.502497
 
 [linguistic]
 Time-Trainings Accuracy:    0.576000 F1-score: 0.730280 ROC: 0.501483
@@ -30,4 +30,6 @@ Finish-Trainings Accuracy:  0.661000 F1-score: 0.780866 ROC: 0.550014
 Time-Trainings Accuracy:    0.583000 F1-score: 0.730097 ROC: 0.512788
 Finish-Trainings Accuracy:  0.655000 F1-score: 0.781784 ROC: 0.532984
 
-Finish-Trainings Accuracy: 0.756000 F1-score: 0.853717 ROC: 0.565696
+[after topic model improvement]
+TIME-Trainings Accuracy:    0.584333 F1-score: 0.730728 ROC: 0.509375 
+Finish-Trainings Accuracy:  0.668667 F1-score: 0.788870 ROC: 0.550530 

@@ -1,6 +1,7 @@
 from math import floor, log
 import re
 import os
+import itertools
 
 TAG_RE = re.compile(r'<[^>]+>')
 INLINE_CODE_RE = re.compile(r'`[^`]+`')
@@ -51,3 +52,11 @@ def array_from_sparse(els, size):
     for idx, value in els:
         r[idx] = value
     return r
+
+def grouper(n, iterable):
+    it = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(it, n))
+        if not chunk:
+            return
+        yield chunk
