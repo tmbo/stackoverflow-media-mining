@@ -62,7 +62,7 @@ class SOQuestionCorpus(corpora.TextCorpus):
     def question_body_stream(self):
         global tokenizer
         tokenizer = self.tokenizer
-        csv = read_csv("../output/stackoverflow-data/posts.csv", set(["Id", "Body"]), subsample=self.subsample, limit=self.limit)
+        csv = read_csv("output/stackoverflow-data/posts.csv", set(["Id", "Body"]), subsample=self.subsample, limit=self.limit)
         pool = multiprocessing.Pool(self.processes)
         for Id, tokens in pool.imap(_process_row, csv, chunksize=10000):
             if tokens:
