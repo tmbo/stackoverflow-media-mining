@@ -23,6 +23,7 @@ def _process_row(row):
         print row
         import traceback
         traceback.print_exc()
+        return row[1], []
         
         
 
