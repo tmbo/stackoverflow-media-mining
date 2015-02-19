@@ -12,11 +12,19 @@ tokenizer = None
 
 
 def _process_row(row):
-    if row[1] is None:
-        return row[0], []
-    else:
-        # return row[0], list(tokenizer(remove_tags(remove_code(row[1].encode("utf-8")))))
-        return row[0], list(tokenizer(remove_tags(remove_code(row[1]))))
+    try:
+        if row[1] is None:
+            return row[0], []
+        else:
+            # return row[0], list(tokenizer(remove_tags(remove_code(row[1].encode("utf-8")))))
+            return row[0], list(tokenizer(remove_tags(remove_code(row[1]))))
+    except Exception as err:
+        print "An exception occurred during processing of the row: "
+        print row
+        import traceback
+        traceback.print_exc()
+        
+        
 
 class SOQuestionCorpus(corpora.TextCorpus):
     def __init__(self, tokenizer, processes=None, query_page_size=50000, subsample=1.0, limit=None):
@@ -132,7 +140,7 @@ def vp_topic_model(name, base_dir="."):
     if model is None:
         model = SOQuestionTopicModel.train(
             name, base_dir, chunker.chunk_text, load_corpus_from_file=False, num_topics=100, query_page_size=1000,
-            subsample=0.1, limit=10000)
+            subsample=1, limit=10000)
         model.save_model(base_dir)
     return model
 
