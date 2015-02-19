@@ -26,3 +26,4 @@ def read_csv(filename, included_column_names, subsample=1.0, limit=None):
         except csv.Error as err:
             print "Coucht an error while reading csv line %d" % idx
             print err
+            return
