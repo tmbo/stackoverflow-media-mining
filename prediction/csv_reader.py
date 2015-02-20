@@ -24,7 +24,7 @@ def read_csv(filename, included_column_names, subsample=1.0, limit=None):
                     count += 1
                 if limit is not None and yield_count >= limit:
                     return
-        except csv.Error as err:
+        except Exception as err:
             print "Caught an error while reading csv line %d" % idx
             print err
             return
