@@ -16,7 +16,7 @@ def read_csv(filename, included_column_names, subsample=1.0, limit=None):
                     included_columns = [i for i, column in enumerate(row) if column in included_column_names]
                 elif count < take_max:
                     yield_count += 1
-                    yield [row[i].decode('unicode_escape').encode('ascii','ignore') for i in included_columns]
+                    yield [row[i].decode('utf8').encode('ascii','ignore') for i in included_columns]
                 idx += 1
                 if idx % 1000 == 0:
                     count = 0
