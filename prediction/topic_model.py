@@ -37,6 +37,7 @@ class SOQuestionCorpus(corpora.TextCorpus):
         print "Creating dictionary..."
         super(SOQuestionCorpus, self).__init__(input=True)
         self.dictionary.filter_extremes(no_below=5, no_above=0.3)
+        self.dictionary.filter_extremes(no_below=5, no_above=0.1)
 
     def get_texts(self):
         return self.question_body_stream()

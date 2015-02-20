@@ -136,3 +136,5 @@ Use the emebding script like this:
     renderIntoElement(selector, url_to_prediction_server);
   </script>
 ```
+
+## Data Statistics
