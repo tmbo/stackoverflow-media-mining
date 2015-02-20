@@ -36,7 +36,6 @@ class SOQuestionCorpus(corpora.TextCorpus):
         self.query_page_size = query_page_size
         print "Creating dictionary..."
         super(SOQuestionCorpus, self).__init__(input=True)
-        self.dictionary.filter_extremes(no_below=5, no_above=0.3)
         self.dictionary.filter_extremes(no_below=5, no_above=0.1)
 
     def get_texts(self):
