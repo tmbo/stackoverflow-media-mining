@@ -1,4 +1,5 @@
 import csv
+import codecs
 
 
 def read_csv(filename, included_column_names, subsample=1.0, limit=None):
@@ -15,7 +16,7 @@ def read_csv(filename, included_column_names, subsample=1.0, limit=None):
                     included_columns = [i for i, column in enumerate(row) if column in included_column_names]
                 elif count < take_max:
                     yield_count += 1
-                    yield [row[i] for i in included_columns]
+                    yield [row[i].decode('unicode_escape').encode('ascii','ignore') for i in included_columns]
                 idx += 1
                 if idx % 1000 == 0:
                     count = 0
@@ -24,6 +25,6 @@ def read_csv(filename, included_column_names, subsample=1.0, limit=None):
                 if limit is not None and yield_count >= limit:
                     return
         except csv.Error as err:
-            print "Coucht an error while reading csv line %d" % idx
+            print "Caught an error while reading csv line %d" % idx
             print err
             return
