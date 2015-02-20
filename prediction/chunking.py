@@ -42,11 +42,11 @@ class TextChunker:
                     
     def stem_token(self, token):
         try:
-            self.stemmer.stem(token.decode('utf-8'))
+            return self.stemmer.stem(token.decode('utf-8'))
         except Exception as err:
             print "Couldn't stem token '%s'." % token
             print err
-            yield ""
+            return ""
 
             # The chunker will produce a parse tree. We need to analyse the parse tree and
     # extract and combine the tags we want.
