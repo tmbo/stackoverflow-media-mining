@@ -7,6 +7,7 @@ TAG_RE = re.compile(r'<[^>]+>')
 INLINE_CODE_RE = re.compile(r'`[^`]+`')
 PRE_RE = re.compile(r'<pre>(.*?)</pre>', re.DOTALL)
 CODE_RE = re.compile(r'<code>(.*?)</code>', re.DOTALL)
+LF_RE = re.compile(r'&#xA;')
 
 
 def _ctoi(c):
@@ -21,7 +22,7 @@ def isdigit(c):
 
 
 def remove_tags(text):
-    return TAG_RE.sub('', text)
+    return LF_RE.sub(' ', TAG_RE.sub('', text))
 
 
 def remove_code(text):

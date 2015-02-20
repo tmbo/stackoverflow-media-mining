@@ -39,8 +39,16 @@ class TextChunker:
             for chunk in self._extract_chunks(self.chunker.parse(tagged), exclude=["NP", ".", ":", "(", ")"]):
                 if len(chunk) >= 2:
                     yield chunk
+                    
+    def stem_token(self, token):
+        try:
+            self.stemmer.stem(token.decode('utf-8'))
+        except Exception as err:
+            print "Couldn't stem token '%s'." % token
+            print err
+            yield ""
 
-    # The chunker will produce a parse tree. We need to analyse the parse tree and
+            # The chunker will produce a parse tree. We need to analyse the parse tree and
     # extract and combine the tags we want.
     def _extract_chunks(self, tree, exclude):
         def traverse(tree):
@@ -74,7 +82,7 @@ class TextChunker:
             if len(traversed) > 0:
                 # chunks get conected again using whitespaces
                 if self.stem_chunks:
-                    yield " ".join(map(lambda token: self.stemmer.stem(token.decode('utf-8')), traversed))
+                    yield " ".join(map(self.stem_token, traversed))
                 else:
                     yield " ".join(traversed)
 
